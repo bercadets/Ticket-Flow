@@ -10,29 +10,49 @@ namespace TicketFlowAPI.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
+        private readonly PredictionService _predictionService;
+
+        public TicketsController(PredictionService predictionService)
+        {
+            _predictionService = predictionService;
+        }
 
         [HttpPost("submit")]
-        public IActionResult SubmitTicket([FromBody] ActiveTicket incomingTicket)
+        public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTicket)
         {
+            
+            var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
+
+            if (prediction == null)
+            {
+                return StatusCode(503, new { 
+                    error = "AI Analysis is currently busy. Please try again in a few moments to ensure your ticket is prioritized correctly." 
+                });
+            }
+
             try
             {
-                // Hardcoded for testing. Later, this is where ML.NET goes!
-                string predictedCategory = "Hardware"; 
-                int priorityWeight = 3;
 
                 string sql = $@"
                     INSERT INTO ActiveTickets (SubmitterID, Description, Category, PriorityLevel, PriorityWeight) 
-                    VALUES ({incomingTicket.SubmitterID}, '{incomingTicket.Description}', '{predictedCategory}', 'Standard', {priorityWeight})";
+                    VALUES ({incomingTicket.SubmitterID}, '{incomingTicket.Description}', 
+                            '{prediction.Value.Category}', '{prediction.Value.Label}', {prediction.Value.Weight})";
 
                 _dbHelper.ExecuteModifyQuery(sql);
 
-                return Ok(new { message = "Ticket submitted! AI routed it to: " + predictedCategory });
+                return Ok(new { 
+                    message = "Ticket successfully analyzed and submitted!",
+                    ai_routing = prediction.Value.Category,
+                    priority = prediction.Value.Label
+                });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "Database failed: " + ex.Message });
             }
         }
+
+        
     
         [HttpGet("active")]
         public IActionResult GetActiveTickets()
@@ -115,7 +135,20 @@ namespace TicketFlowAPI.Controllers
                 }
             }
         }
-        
+        [HttpPost("test-ai")]
+        public async Task<IActionResult> TestAI([FromBody] string description)
+        {
+            var prediction = await _predictionService.PredictTicketAsync(description);
+
+            if (prediction == null)
+                return StatusCode(503, new { error = "AI returned null - check your API key or prompt." });
+
+            return Ok(new {
+                raw_category = prediction.Value.Category,
+                raw_weight = prediction.Value.Weight,
+                raw_label = prediction.Value.Label
+            });
+        }
     }
     
 }

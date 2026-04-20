@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\laptop\\Documents\\vscode\\TicketFlowAPI\\TicketFlowAPI.csproj": {}
+    "C:\\Users\\bercadets\\Desktop\\Smart-IT-Ticketing-and-Support-Desk-Application\\TicketFlowAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\laptop\\Documents\\vscode\\TicketFlowAPI\\TicketFlowAPI.csproj": {
+    "C:\\Users\\bercadets\\Desktop\\Smart-IT-Ticketing-and-Support-Desk-Application\\TicketFlowAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\laptop\\Documents\\vscode\\TicketFlowAPI\\TicketFlowAPI.csproj",
+        "projectUniqueName": "C:\\Users\\bercadets\\Desktop\\Smart-IT-Ticketing-and-Support-Desk-Application\\TicketFlowAPI.csproj",
         "projectName": "TicketFlowAPI",
-        "projectPath": "C:\\Users\\laptop\\Documents\\vscode\\TicketFlowAPI\\TicketFlowAPI.csproj",
-        "packagesPath": "C:\\Users\\laptop\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\laptop\\Documents\\vscode\\TicketFlowAPI\\obj\\",
+        "projectPath": "C:\\Users\\bercadets\\Desktop\\Smart-IT-Ticketing-and-Support-Desk-Application\\TicketFlowAPI.csproj",
+        "packagesPath": "C:\\Users\\bercadets\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bercadets\\Desktop\\Smart-IT-Ticketing-and-Support-Desk-Application\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\laptop\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\bercadets\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -22,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -40,15 +45,31 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.1.0, )"
+            },
+            "Google.GenAI": {
+              "target": "Package",
+              "version": "[1.6.1, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[10.0.3, )"
+            },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[10.0.6, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[10.0.6, )"
             },
             "MySql.Data": {
               "target": "Package",
@@ -78,7 +99,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
