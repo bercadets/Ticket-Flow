@@ -16,15 +16,26 @@ namespace TicketFlowAPI.Controllers
         {
             try
             {
-                // Hardcoded for testing. Later, this is where ML.NET goes!
+        
                 string predictedCategory = "Hardware"; 
                 int priorityWeight = 3;
 
-                string sql = $@"
-                    INSERT INTO ActiveTickets (SubmitterID, Description, Category, PriorityLevel, PriorityWeight) 
-                    VALUES ({incomingTicket.SubmitterID}, '{incomingTicket.Description}', '{predictedCategory}', 'Standard', {priorityWeight})";
+                    string sql = @"
+                        INSERT INTO ActiveTickets (SubmitterID, Description, Category, PriorityLevel, PriorityWeight) 
+                        VALUES (@SubmitterID, @Description, @Category, @PriorityLevel, @PriorityWeight)";
 
-                _dbHelper.ExecuteModifyQuery(sql);
+                    // 2. Package the variables into a secure dictionary
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "@SubmitterID", incomingTicket.SubmitterID },
+                        { "@Description", incomingTicket.Description },
+                        { "@Category", predictedCategory},
+                        { "@PriorityLevel", "Standard" },
+                        { "@PriorityWeight", priorityWeight },
+                        { "@Status", "Open" }
+                    };
+
+                _dbHelper.ExecuteModifyQuery(sql,parameters);
 
                 return Ok(new { message = "Ticket submitted! AI routed it to: " + predictedCategory });
             }
@@ -42,10 +53,10 @@ namespace TicketFlowAPI.Controllers
                 
                 string sql = "SELECT * FROM ActiveTickets ORDER BY PriorityWeight ASC, CreatedAt ASC";
 
-                // 2. Use our helper to get the data as a Table
+   
                 var dataTable = _dbHelper.ExecuteSelectQuery(sql);
 
-                // 3. Convert the table into a list of objects that the website can understand
+  
                 var tickets = new System.Collections.Generic.List<object>();
                 
                 foreach (System.Data.DataRow row in dataTable.Rows)
@@ -95,6 +106,7 @@ namespace TicketFlowAPI.Controllers
                         INSERT INTO ResolutionNotes (TicketID, AdminID, NoteText) 
                         VALUES ({ticketId}, {adminId}, '{note}')";
                     
+                    
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(noteSql, connection, transaction))
                         cmd.ExecuteNonQuery();
 
@@ -115,7 +127,39 @@ namespace TicketFlowAPI.Controllers
                 }
             }
         }
-        
+
+        [HttpGet("all")]
+        public IActionResult GetAllTickets()
+        {
+            try
+            {
+                // Sort by priorityWeight
+                string sql = "SELECT TicketID, Description, Category, Status FROM ActiveTickets ORDER BY PriorityWeight DESC";
+                
+                var dataTable = _dbHelper.ExecuteSelectQuery(sql);
+
+                
+                var ticketList = new System.Collections.Generic.List<TicketResponse>();
+
+                foreach (System.Data.DataRow row in dataTable.Rows)
+                {
+                    ticketList.Add(new TicketResponse
+                    {
+                        TicketID = System.Convert.ToInt32(row["TicketID"]),
+                        Description = row["Description"].ToString(),
+                        Category = row["Category"].ToString(),
+                        Status = row["Status"].ToString()
+                    });
+                }
+
+                return Ok(ticketList);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to fetch admin queue: " + ex.Message });
+            }
+        }
+                
     }
     
 }

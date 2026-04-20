@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "TN3hWNDad/I=",
+  "dgSpecHash": "wU43GV/yipo=",
   "success": true,
   "projectFilePath": "C:\\Users\\laptop\\Documents\\vscode\\TicketFlowAPI\\TicketFlowAPI.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\laptop\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\laptop\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
     "C:\\Users\\laptop\\.nuget\\packages\\google.protobuf\\3.32.0\\google.protobuf.3.32.0.nupkg.sha512",
     "C:\\Users\\laptop\\.nuget\\packages\\k4os.compression.lz4\\1.3.8\\k4os.compression.lz4.1.3.8.nupkg.sha512",

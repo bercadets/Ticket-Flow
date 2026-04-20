@@ -51,3 +51,5 @@ C:\Users\laptop\Documents\vscode\TicketFlowAPI\obj\Debug\net10.0\ref\TicketFlowA
 C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\BCrypt.Net-Next.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\obj\Debug\net10.0\TicketFlowAPI.sourcelink.json

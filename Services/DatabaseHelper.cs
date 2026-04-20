@@ -28,12 +28,21 @@ namespace TicketFlowAPI.Services
             }
             return dataTable;
         }
-        public int ExecuteModifyQuery(string query)
+
+        public int ExecuteModifyQuery(string query, Dictionary<string, object> parameters = null)
         {
             using (MySqlConnection conn = GetConnection())
             {
                 using (MySqlCommand cmd = new MySqlCommand(query, conn))
                 {
+                    if (parameters != null)
+                    {
+                        foreach (var param in parameters)
+                        {
+                            cmd.Parameters.AddWithValue(param.Key, param.Value);
+                        }
+                    }
+
                     conn.Open();
                     return cmd.ExecuteNonQuery(); 
                 }
