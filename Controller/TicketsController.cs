@@ -21,14 +21,15 @@ namespace TicketFlowAPI.Controllers
                 int priorityWeight = 3;
 
                     string sql = @"
-                        INSERT INTO ActiveTickets (SubmitterID, Description, Category, PriorityLevel, PriorityWeight) 
-                        VALUES (@SubmitterID, @Description, @Category, @PriorityLevel, @PriorityWeight)";
+                        INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight) 
+                        VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight)";
 
                     // 2. Package the variables into a secure dictionary
                     var parameters = new Dictionary<string, object>
                     {
                         { "@SubmitterID", incomingTicket.SubmitterID },
                         { "@Description", incomingTicket.Description },
+                        { "@Location", incomingTicket.Location},
                         { "@Category", predictedCategory},
                         { "@PriorityLevel", "Standard" },
                         { "@PriorityWeight", priorityWeight },
@@ -93,29 +94,38 @@ namespace TicketFlowAPI.Controllers
                 try
                 {
                     
-                    string copySql = $@"
-                        INSERT INTO TicketArchive (TicketID, SubmitterID, Description, Category, FinalPriority, CreatedAt)
-                        SELECT TicketID, SubmitterID, Description, Category, PriorityLevel, CreatedAt 
-                        FROM ActiveTickets WHERE TicketID = {ticketId}";
-                    
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(copySql, connection, transaction))
-                        cmd.ExecuteNonQuery();
+                    string copySql = @"
+                            INSERT INTO TicketArchive (TicketID, SubmitterID, Description, Location, Category, FinalPriority, CreatedAt)
+                            SELECT TicketID, SubmitterID, Description, Location, Category, PriorityLevel, CreatedAt 
+                            FROM ActiveTickets WHERE TicketID = @TicketID";
+                        
+                        using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(copySql, connection, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@TicketID", ticketId);
+                            cmd.ExecuteNonQuery();
+                        }
 
                     
-                    string noteSql = $@"
-                        INSERT INTO ResolutionNotes (TicketID, AdminID, NoteText) 
-                        VALUES ({ticketId}, {adminId}, '{note}')";
-                    
-                    
+                    string noteSql = @"
+                    INSERT INTO ResolutionNotes (TicketID, AdminID, NoteText) 
+                    VALUES (@TicketID, @AdminID, @Note)";
+                
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(noteSql, connection, transaction))
+                    {
+                        cmd.Parameters.AddWithValue("@TicketID", ticketId);
+                        cmd.Parameters.AddWithValue("@AdminID", adminId);
+                        cmd.Parameters.AddWithValue("@Note", note);
                         cmd.ExecuteNonQuery();
+                    }
 
                     
-                    string deleteSql = $"DELETE FROM ActiveTickets WHERE TicketID = {ticketId}";
-                    
+                    string deleteSql = "DELETE FROM ActiveTickets WHERE TicketID = @TicketID";
+                
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(deleteSql, connection, transaction))
+                    {
+                        cmd.Parameters.AddWithValue("@TicketID", ticketId);
                         cmd.ExecuteNonQuery();
-
+                    }
                     
                     transaction.Commit();
                     return Ok(new { message = "Ticket resolved and archived successfully." });
