@@ -50,9 +50,21 @@
               "target": "Package",
               "version": "[4.1.0, )"
             },
+            "Google.GenAI": {
+              "target": "Package",
+              "version": "[1.6.1, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[10.0.3, )"
+            },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[10.0.6, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[10.0.6, )"
             },
             "MySql.Data": {
               "target": "Package",

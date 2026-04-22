@@ -53,3 +53,13 @@ C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Swashbuckle.Asp
 C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\BCrypt.Net-Next.dll
 C:\Users\laptop\Documents\vscode\TicketFlowAPI\obj\Debug\net10.0\TicketFlowAPI.sourcelink.json
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\AppSusi.json
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Google.Apis.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Google.Apis.Auth.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Google.Apis.Core.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Google.GenAI.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Microsoft.Extensions.AI.Abstractions.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\Newtonsoft.Json.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\System.CodeDom.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\System.Management.dll
+C:\Users\laptop\Documents\vscode\TicketFlowAPI\bin\Debug\net10.0\runtimes\win\lib\net7.0\System.Management.dll
