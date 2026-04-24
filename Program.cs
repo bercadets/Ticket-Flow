@@ -9,6 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<DatabaseHelper>();
+builder.Services.AddScoped<PredictionService>();
 
 var app = builder.Build();
 

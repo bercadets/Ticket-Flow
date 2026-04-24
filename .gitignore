@@ -1,0 +1,8 @@
+appSusi.json
+appsettings.Development.json
+
+appsettings.local.json
+secrets.json
+
+bin/
+obj/

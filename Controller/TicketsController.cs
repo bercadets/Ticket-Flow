@@ -10,15 +10,28 @@ namespace TicketFlowAPI.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
+              private readonly PredictionService _predictionService;
+
+        public TicketsController(PredictionService predictionService)
+            {
+                
+                _predictionService = predictionService; 
+            }
+
 
         [HttpPost("submit")]
-        public IActionResult SubmitTicket([FromBody] ActiveTicket incomingTicket)
+        public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTicket)
         {
             try
             {
+                var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
+
+
+            if (prediction == null)
+                return StatusCode(503, new { error = "AI returned null - check your API key or prompt." });
+
+
         
-                string predictedCategory = "Hardware"; 
-                int priorityWeight = 3;
 
                     string sql = @"
                         INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight) 
@@ -30,15 +43,15 @@ namespace TicketFlowAPI.Controllers
                         { "@SubmitterID", incomingTicket.SubmitterID },
                         { "@Description", incomingTicket.Description },
                         { "@Location", incomingTicket.Location},
-                        { "@Category", predictedCategory},
-                        { "@PriorityLevel", "Standard" },
-                        { "@PriorityWeight", priorityWeight },
+                        { "@Category", prediction.Value.Category},
+                        { "@PriorityLevel", prediction.Value.Label },
+                        { "@PriorityWeight", prediction.Value.Weight },
                         { "@Status", "Open" }
                     };
 
                 _dbHelper.ExecuteModifyQuery(sql,parameters);
 
-                return Ok(new { message = "Ticket submitted! AI routed it to: " + predictedCategory });
+                return Ok(new { message = "Ticket submitted! AI routed it to: " + prediction.Value.Category });
             }
             catch (Exception ex)
             {
@@ -170,6 +183,12 @@ namespace TicketFlowAPI.Controllers
             }
         }
                 
+
+
+  
+            
+
     }
+    
     
 }
