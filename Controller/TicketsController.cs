@@ -24,38 +24,44 @@ namespace TicketFlowAPI.Controllers
         {
             try
             {
+                // Get AI prediction
                 var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
-
-
-            if (prediction == null)
-                return StatusCode(503, new { error = "AI returned null - check your API key or prompt." });
-
-
-        
-
-                    string sql = @"
-                        INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight) 
-                        VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight)";
-
-                    // 2. Package the variables into a secure dictionary
-                    var parameters = new Dictionary<string, object>
-                    {
-                        { "@SubmitterID", incomingTicket.SubmitterID },
-                        { "@Description", incomingTicket.Description },
-                        { "@Location", incomingTicket.Location},
-                        { "@Category", prediction.Value.Category},
-                        { "@PriorityLevel", prediction.Value.Label },
-                        { "@PriorityWeight", prediction.Value.Weight },
-                        { "@Status", "Open" }
-                    };
-
-                _dbHelper.ExecuteModifyQuery(sql,parameters);
-
-                return Ok(new { message = "Ticket submitted! AI routed it to: " + prediction.Value.Category });
+                
+                if (prediction == null)
+                {
+                    return StatusCode(503, new { error = "AI service unavailable - check API key" });
+                }
+                
+                // Use AI prediction values
+                string category = prediction.Value.Category;
+                string priorityLevel = prediction.Value.Label; // "Urgent", "High Priority", or "Issue"
+                int priorityWeight = prediction.Value.Weight;  // 1, 2, or 3
+                
+                string sql = @"
+                    INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight, Status) 
+                    VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight, 'Open')";
+                
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@SubmitterID", incomingTicket.SubmitterID },
+                    { "@Description", incomingTicket.Description },
+                    { "@Location", incomingTicket.Location },
+                    { "@Category", category },
+                    { "@PriorityLevel", priorityLevel },
+                    { "@PriorityWeight", priorityWeight }
+                };
+                
+                _dbHelper.ExecuteModifyQuery(sql, parameters);
+                
+                return Ok(new { 
+                    message = "Ticket submitted! AI routed it to: " + category,
+                    category = category,
+                    priority = priorityLevel
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Database failed: " + ex.Message });
+                return StatusCode(500, new { error = "Failed: " + ex.Message });
             }
         }
     
