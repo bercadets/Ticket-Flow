@@ -366,10 +366,10 @@ async function renderAdminDashboard() {
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading tickets...</div>`;
     
     try {
-        const tickets = await getAllTickets();
+        const tickets = await getAllTickets(); // Use getAllTickets, not getActiveTickets
         
         const activeTickets = tickets.filter(t => t.status !== "Resolved");
-        const highPriority = tickets.filter(t => t.status !== "Resolved" && t.priorityLevel === "Urgent").length;
+        const highPriority = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
         
         container.innerHTML = `
             <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
@@ -380,14 +380,25 @@ async function renderAdminDashboard() {
             <div class="table-responsive">
                 <h4>🚨 Active Tickets</h4>
                 <table class="data-table">
-                    <thead><tr><th>ID</th><th>Submitter</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Submitter</th>
+                            <th>Description</th>
+                            <th>Location</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         ${activeTickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
                                 <td>User ${t.submitterID}</td>
-                                <td>${t.description?.substring(0, 40)}...</td>
-                                <td>📍 ${t.location || 'N/A'}</td>
+                                <td>${t.description?.substring(0, 40)}${t.description?.length > 40 ? '...' : ''}</td>
+                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td>${t.category || 'N/A'}</td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
                                 <td>${t.status}</td>
@@ -414,14 +425,24 @@ async function renderAllTicketsAdmin() {
             <h3>📋 All Tickets (Admin View)</h3>
             <div class="table-responsive">
                 <table class="data-table">
-                    <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Priority</th><th>Status</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Location</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         ${tickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td>${t.category || 'N/A'}</td>
-                                <td>${t.priorityLevel || 'Standard'}</td>
+                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
                                 <td>${t.status}</td>
                             </tr>
                         `).join('')}
@@ -450,12 +471,21 @@ async function renderPriorityQueue() {
             <p>Tickets sorted by urgency: Urgent → High Priority → Issue</p>
             <div class="table-responsive">
                 <table class="data-table">
-                    <thead><tr><th>ID</th><th>Description</th><th>Priority</th><th>Status</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Location</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         ${sorted.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
                                 <td>${t.status}</td>
                             </tr>
