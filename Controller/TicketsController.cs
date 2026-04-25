@@ -164,7 +164,7 @@ namespace TicketFlowAPI.Controllers
             try
             {
                 // Sort by priorityWeight
-                string sql = "SELECT TicketID, Description, Location, Category, PriorityLevel, Status FROM ActiveTickets ORDER BY PriorityWeight DESC";
+                string sql = "SELECT TicketID, SubmitterID, Description, Location, Category, PriorityLevel, Status FROM ActiveTickets ORDER BY PriorityWeight DESC";
                 
                 var dataTable = _dbHelper.ExecuteSelectQuery(sql);
 
@@ -176,6 +176,7 @@ namespace TicketFlowAPI.Controllers
                     ticketList.Add(new TicketResponse
                     {
                         TicketID = System.Convert.ToInt32(row["TicketID"]),
+                        SubmitterID = Convert.ToInt32(row["SubmitterID"]),
                         Description = row["Description"].ToString(),
                         Location = row["Location"]?.ToString() ?? "Not specified",
                         Category = row["Category"].ToString(),

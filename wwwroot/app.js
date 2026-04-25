@@ -366,7 +366,7 @@ async function renderAdminDashboard() {
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading tickets...</div>`;
     
     try {
-        const tickets = await getAllTickets(); // Use getAllTickets, not getActiveTickets
+        const tickets = await getAllTickets();
         
         const activeTickets = tickets.filter(t => t.status !== "Resolved");
         const highPriority = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
@@ -383,7 +383,7 @@ async function renderAdminDashboard() {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Submitter</th>
+                            <th>Submitter ID</th>
                             <th>Description</th>
                             <th>Location</th>
                             <th>Category</th>
@@ -396,12 +396,12 @@ async function renderAdminDashboard() {
                         ${activeTickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
-                                <td>User ${t.submitterID}</td>
-                                <td>${t.description?.substring(0, 40)}${t.description?.length > 40 ? '...' : ''}</td>
+                                <td>${t.submitterID || 'N/A'}${" "} <!-- Now this will work! -->
+                                <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                <td>${t.category || 'N/A'}</td>
+                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td>${t.status}</td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
                                 <td><button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
                             </tr>
                         `).join('')}
@@ -428,6 +428,7 @@ async function renderAllTicketsAdmin() {
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Submitter ID</th>
                             <th>Description</th>
                             <th>Location</th>
                             <th>Category</th>
@@ -439,11 +440,12 @@ async function renderAllTicketsAdmin() {
                         ${tickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
+                                <td>${t.submitterID || 'N/A'}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                <td>${t.category || 'N/A'}</td>
+                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td>${t.status}</td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -474,26 +476,49 @@ async function renderPriorityQueue() {
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Submitter ID</th>
                             <th>Description</th>
                             <th>Location</th>
+                            <th>Category</th>
                             <th>Priority</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${sorted.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
+                                <td>${t.submitterID || 'N/A'}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td>${t.status}</td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                <td><button class="btn-outline priorityResolve" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             </div>
         `;
+        
+        // Add event listeners for resolve buttons
+        document.querySelectorAll(".priorityResolve").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const ticketId = btn.getAttribute("data-id");
+                const note = prompt("Enter resolution notes:");
+                if (note) {
+                    try {
+                        await resolveTicket(ticketId, currentUser.id, note);
+                        showToast("Ticket resolved successfully!", "success");
+                        renderPriorityQueue();
+                    } catch (error) {
+                        showToast(error.message, "error");
+                    }
+                }
+            });
+        });
     } catch (error) {
         container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
     }
