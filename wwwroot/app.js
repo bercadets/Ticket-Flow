@@ -369,13 +369,15 @@ async function renderAdminDashboard() {
         const tickets = await getAllTickets();
         
         const activeTickets = tickets.filter(t => t.status !== "Resolved");
-        const highPriority = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
+        
+        // Count ONLY Urgent tickets
+        const urgentCount = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
         
         container.innerHTML = `
             <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
             <div class="stat-grid">
                 <div class="stat-card"><div class="stat-title">Active Tickets</div><div class="stat-number">${activeTickets.length}</div></div>
-                <div class="stat-card"><div class="stat-title">High Priority</div><div class="stat-number" style="color:#E33E3E;">${highPriority}</div></div>
+                <div class="stat-card"><div class="stat-title">Urgent Tickets</div><div class="stat-number" style="color:#E33E3E;">${urgentCount}</div></div>
             </div>
             <div class="table-responsive">
                 <h4>🚨 Active Tickets</h4>
@@ -390,13 +392,13 @@ async function renderAdminDashboard() {
                             <th>Priority</th>
                             <th>Status</th>
                             <th>Action</th>
-                        </tr>
+                        </td>
                     </thead>
                     <tbody>
                         ${activeTickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}${" "} <!-- Now this will work! -->
+                                <td>${t.submitterID || 'N/A'}${" "} 
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
