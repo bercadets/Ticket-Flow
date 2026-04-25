@@ -192,6 +192,41 @@ namespace TicketFlowAPI.Controllers
                 return StatusCode(500, new { error = "Failed to fetch admin queue: " + ex.Message });
             }
         }
+
+        [HttpPut("update-status")]
+        public IActionResult UpdateStatus(int ticketId, string status)
+        {
+            try
+            {
+                // Validate status
+                if (status != "Open" && status != "In Progress" && status != "Resolved")
+                {
+                    return BadRequest(new { error = "Invalid status. Use: Open, In Progress, or Resolved" });
+                }
+                
+                string sql = "UPDATE ActiveTickets SET Status = @Status WHERE TicketID = @TicketID";
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@Status", status },
+                    { "@TicketID", ticketId }
+                };
+                
+                int rowsAffected = _dbHelper.ExecuteModifyQuery(sql, parameters);
+                
+                if (rowsAffected > 0)
+                {
+                    return Ok(new { message = $"Ticket #{ticketId} status updated to {status}" });
+                }
+                else
+                {
+                    return NotFound(new { error = $"Ticket #{ticketId} not found" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to update status: " + ex.Message });
+            }
+        }
                 
 
 

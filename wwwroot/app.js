@@ -369,15 +369,17 @@ async function renderAdminDashboard() {
         const tickets = await getAllTickets();
         
         const activeTickets = tickets.filter(t => t.status !== "Resolved");
-        
-        // Count ONLY Urgent tickets
         const urgentCount = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
+        const inProgressCount = activeTickets.filter(t => t.status === "In Progress").length;
+        const openCount = activeTickets.filter(t => t.status === "Open").length;
         
         container.innerHTML = `
             <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
             <div class="stat-grid">
                 <div class="stat-card"><div class="stat-title">Active Tickets</div><div class="stat-number">${activeTickets.length}</div></div>
                 <div class="stat-card"><div class="stat-title">Urgent Tickets</div><div class="stat-number" style="color:#E33E3E;">${urgentCount}</div></div>
+                <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${openCount}</div></div>
+                <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${inProgressCount}</div></div>
             </div>
             <div class="table-responsive">
                 <h4>🚨 Active Tickets</h4>
@@ -385,14 +387,14 @@ async function renderAdminDashboard() {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Submitter ID</th>
+                            <th>Submitter</th>
                             <th>Description</th>
                             <th>Location</th>
                             <th>Category</th>
                             <th>Priority</th>
                             <th>Status</th>
-                            <th>Action</th>
-                        </td>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
                         ${activeTickets.map(t => `
@@ -404,14 +406,45 @@ async function renderAdminDashboard() {
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
                                 <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
-                                <td><button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
+                                <td>
+                                    ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
+                                    ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
+                                    ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
+                                 </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             </div>
         `;
-        attachResolveButtons();
+        
+        // Add event listeners for Start buttons
+        document.querySelectorAll(".startBtn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const ticketId = btn.getAttribute("data-id");
+                await updateTicketStatus(ticketId, "In Progress");
+                showToast(`Ticket #${ticketId} marked as In Progress`, "success");
+                renderAdminDashboard(); // Refresh the dashboard
+            });
+        });
+        
+        // Add event listeners for Resolve buttons
+        document.querySelectorAll(".resolveBtn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const ticketId = btn.getAttribute("data-id");
+                const note = prompt("Enter resolution notes:");
+                if (note) {
+                    try {
+                        await resolveTicket(ticketId, currentUser.id, note);
+                        showToast(`Ticket #${ticketId} resolved!`, "success");
+                        renderAdminDashboard(); // Refresh the dashboard
+                    } catch (error) {
+                        showToast(error.message, "error");
+                    }
+                }
+            });
+        });
+        
     } catch (error) {
         container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
     }
@@ -551,6 +584,24 @@ function showToast(message, type = "info") {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
+}
+
+async function updateTicketStatus(ticketId, status) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Tickets/update-status?ticketId=${ticketId}&status=${status}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to update status');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
 }
 
 // Load saved sidebar state and start
