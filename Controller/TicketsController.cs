@@ -86,6 +86,7 @@ namespace TicketFlowAPI.Controllers
                         TicketID = row["TicketID"],
                         SubmitterID = row["SubmitterID"],
                         Description = row["Description"],
+                        Location = row["Location"], 
                         Category = row["Category"],
                         PriorityLevel = row["PriorityLevel"],
                         PriorityWeight = row["PriorityWeight"],

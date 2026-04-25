@@ -1,116 +1,52 @@
 
-
 // Current logged in user
 let currentUser = null;
 let isSidebarCollapsed = false;
 
-// Helper function for API calls
+// ============ API CALLS ============
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = {
         method: method,
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
     };
-    
-    if (body) {
-        options.body = JSON.stringify(body);
-    }
+    if (body) options.body = JSON.stringify(body);
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     const data = await response.json();
-    
-    if (!response.ok) {
-        throw new Error(data.error || data.message || 'API call failed');
-    }
-    
+    if (!response.ok) throw new Error(data.error || data.message || 'API call failed');
     return data;
 }
 
-// LOGIN FUNCTION (Connect to backend)
 async function login(username, password) {
-    try {
-        const result = await apiCall('/Auth/login', 'POST', {
-            username: username,
-            password: password
-        });
-        
-        return {
-            success: true,
-            userId: result.userId,
-            name: `${result.fName} ${result.lName}`,
-            role: result.role.toLowerCase(),
-            firstName: result.fName,
-            lastName: result.lName
-        };
-    } catch (error) {
-        return { success: false, message: error.message };
-    }
+    const result = await apiCall('/Auth/login', 'POST', { username, password });
+    return {
+        success: true,
+        userId: result.userId,
+        name: `${result.fName} ${result.lName}`,
+        role: result.role.toLowerCase(),
+        firstName: result.fName,
+        lastName: result.lName
+    };
 }
 
-// REGISTER FUNCTION
-async function register(fName, lName, username, password) {
-    try {
-        const result = await apiCall('/Auth/register', 'POST', {
-            fName: fName,
-            lName: lName,
-            username: username,
-            password: password
-        });
-        
-        return { success: true, message: result.message };
-    } catch (error) {
-        return { success: false, message: error.message };
-    }
-}
-
-// SUBMIT TICKET FUNCTION
 async function submitTicket(submitterId, description, location) {
-    try {
-        const result = await apiCall('/Tickets/submit', 'POST', {
-            submitterId: submitterId,
-            description: description,
-            location: location
-        });
-        
-        return { success: true, message: result.message };
-    } catch (error) {
-        return { success: false, message: error.message };
-    }
+    const result = await apiCall('/Tickets/submit', 'POST', { submitterID: submitterId, description, location });
+    return { success: true, message: result.message };
 }
 
-// GET ACTIVE TICKETS (for student view)
 async function getActiveTickets() {
-    try {
-        const tickets = await apiCall('/Tickets/active', 'GET');
-        return { success: true, tickets: tickets };
-    } catch (error) {
-        return { success: false, tickets: [] };
-    }
+    return await apiCall('/Tickets/active', 'GET');
 }
 
-// GET ALL TICKETS (for admin view)
 async function getAllTickets() {
-    try {
-        const tickets = await apiCall('/Tickets/all', 'GET');
-        return { success: true, tickets: tickets };
-    } catch (error) {
-        return { success: false, tickets: [] };
-    }
+    return await apiCall('/Tickets/all', 'GET');
 }
 
-// RESOLVE TICKET (admin only)
 async function resolveTicket(ticketId, adminId, note) {
-    try {
-        const result = await apiCall(`/Tickets/resolve?ticketId=${ticketId}&adminId=${adminId}&note=${encodeURIComponent(note)}`, 'POST');
-        return { success: true, message: result.message };
-    } catch (error) {
-        return { success: false, message: error.message };
-    }
+    return await apiCall(`/Tickets/resolve?ticketId=${ticketId}&adminId=${adminId}&note=${encodeURIComponent(note)}`, 'POST');
 }
 
-// ============ UI RENDER FUNCTIONS ============
-
+// ============ UI FUNCTIONS ============
 function renderApp() {
     const root = document.getElementById("appRoot");
     if (!currentUser) {
@@ -154,19 +90,22 @@ function renderLoginScreen(root) {
             return;
         }
         
-        const result = await login(username, password);
-        
-        if (result.success) {
-            currentUser = {
-                id: result.userId,
-                name: result.name,
-                role: result.role,
-                initials: result.firstName.charAt(0) + (result.lastName?.charAt(0) || ''),
-                username: username
-            };
-            renderApp();
-        } else {
-            showLoginError(result.message || "Login failed");
+        try {
+            const result = await login(username, password);
+            if (result.success) {
+                currentUser = {
+                    id: result.userId,
+                    name: result.name,
+                    role: result.role,
+                    initials: result.firstName.charAt(0) + (result.lastName?.charAt(0) || ''),
+                    username: username
+                };
+                renderApp();
+            } else {
+                showLoginError(result.message || "Login failed");
+            }
+        } catch (error) {
+            showLoginError(error.message);
         }
     });
 }
@@ -177,7 +116,6 @@ function showLoginError(msg) {
     setTimeout(() => { errDiv.innerHTML = ""; }, 2500);
 }
 
-// MAIN APP AFTER LOGIN
 function renderMainApp(root) {
     const isAdmin = currentUser.role === "admin";
     
@@ -196,7 +134,7 @@ function renderMainApp(root) {
             </div>
         </div>
         <div class="dashboard-layout">
-            <div class="sidebar" id="sidebarNav"></div>
+            <div class="sidebar ${isSidebarCollapsed ? 'collapsed' : ''}" id="sidebarNav"></div>
             <div class="content-area" id="mainContent"></div>
         </div>
     `;
@@ -272,46 +210,54 @@ function attachNavEvents(isAdmin) {
     });
 }
 
-// STUDENT VIEWS (using real API)
+// ============ STUDENT VIEWS ============
 async function renderStudentDashboard() {
     const container = document.getElementById("mainContent");
-    container.innerHTML = `<div style="text-align:center; padding:2rem;">Loading tickets...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading your tickets...</div>`;
     
-    const result = await getActiveTickets();
-    const myTickets = result.tickets.filter(t => t.submitterId === currentUser.id);
-    
-    const open = myTickets.filter(t => t.status === "Open").length;
-    const progress = myTickets.filter(t => t.status === "In Progress").length;
-    
-    container.innerHTML = `
-        <div style="margin-bottom: 1.5rem;">
-            <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
-            <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
-        </div>
-        <div class="stat-grid">
-            <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${myTickets.length}</div></div>
-            <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
-            <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
-        </div>
-        <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Priority</th><th>Status</th></tr></thead>
-                <tbody>
-                    ${myTickets.map(t => `
-                        <tr>
-                            <td>#${t.ticketId}</td>
-                            <td>${t.description?.substring(0, 50)}...</td>
-                            <td><span class="badge badge-hw">${t.category}</span></td>
-                            <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel}</span></td>
-                            <td><span class="badge badge-open">${t.status}</span></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    document.getElementById("newTicketBtn")?.addEventListener("click", () => renderSubmitForm());
+    try {
+        const tickets = await getActiveTickets();
+        const myTickets = tickets.filter(t => t.submitterID === currentUser.id);
+        
+        const open = myTickets.filter(t => t.status === "Open").length;
+        const progress = myTickets.filter(t => t.status === "In Progress").length;
+        const resolved = myTickets.filter(t => t.status === "Resolved").length;
+        
+        container.innerHTML = `
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
+                <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${myTickets.length}</div></div>
+                <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
+                <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
+                <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
+            </div>
+            <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
+                    <tbody>
+                        ${myTickets.map(t => `
+                            <tr>
+                                <td><strong>#${t.ticketID}</strong></td>
+                                <td>${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById("newTicketBtn")?.addEventListener("click", () => renderSubmitForm());
+    } catch (error) {
+        container.innerHTML = `<div style="color:red; padding:2rem;">❌ Error loading tickets: ${error.message}</div>`;
+    }
 }
 
 function renderSubmitForm() {
@@ -329,6 +275,7 @@ function renderSubmitForm() {
             <div class="form-group">
                 <label class="form-label">📍 Location *</label>
                 <input type="text" class="form-control" id="ticketLocation" placeholder="Building name, room number">
+                <small style="color: var(--text-light);">Where is the issue occurring?</small>
             </div>
             
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -341,10 +288,10 @@ function renderSubmitForm() {
     `;
     
     document.getElementById("submitFinalBtn").addEventListener("click", async () => {
-        const desc = document.getElementById("ticketDesc").value.trim();
+        const description = document.getElementById("ticketDesc").value.trim();
         const location = document.getElementById("ticketLocation").value.trim();
         
-        if (!desc || !location) {
+        if (!description || !location) {
             showToast("Please fill in description and location", "error");
             return;
         }
@@ -353,21 +300,21 @@ function renderSubmitForm() {
         btn.innerHTML = "⏳ Processing...";
         btn.disabled = true;
         
-        const result = await submitTicket(currentUser.id, desc, location);
-        
-        const feedbackDiv = document.getElementById("aiFeedback");
-        if (result.success) {
+        try {
+            const result = await submitTicket(currentUser.id, description, location);
+            const feedbackDiv = document.getElementById("aiFeedback");
             feedbackDiv.innerHTML = `✅ ${result.message}`;
-            feedbackDiv.style.background = "#E8F5E9";
+            feedbackDiv.style.display = "block";
             showToast("Ticket submitted successfully!", "success");
             setTimeout(() => renderStudentDashboard(), 2000);
-        } else {
-            feedbackDiv.innerHTML = `❌ ${result.message}`;
+        } catch (error) {
+            const feedbackDiv = document.getElementById("aiFeedback");
+            feedbackDiv.innerHTML = `❌ ${error.message}`;
             feedbackDiv.style.background = "#FFEBEE";
+            feedbackDiv.style.display = "block";
             btn.innerHTML = "Submit Ticket";
             btn.disabled = false;
         }
-        feedbackDiv.style.display = "block";
     });
     
     document.getElementById("cancelBtn").addEventListener("click", () => renderStudentDashboard());
@@ -375,63 +322,151 @@ function renderSubmitForm() {
 
 async function renderMyTickets() {
     const container = document.getElementById("mainContent");
-    container.innerHTML = `<div style="text-align:center; padding:2rem;">Loading tickets...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading your tickets...</div>`;
     
-    const result = await getActiveTickets();
-    const myTickets = result.tickets.filter(t => t.submitterId === currentUser.id);
-    
-    container.innerHTML = `
-        <h3 style="margin-bottom: 1rem;">📌 My Tickets</h3>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Priority</th><th>Status</th></tr></thead>
-                <tbody>
-                    ${myTickets.map(t => `
-                        <tr>
-                            <td>#${t.ticketId}</td>
-                            <td>${t.description?.substring(0, 50)}...</td>
-                            <td>${t.category}</td>
-                            <td>${t.priorityLevel}</td>
-                            <td>${t.status}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
+    try {
+        const tickets = await getActiveTickets();
+        const myTickets = tickets.filter(t => t.submitterID === currentUser.id);
+        
+        if (myTickets.length === 0) {
+            container.innerHTML = `<h3>📌 My Tickets</h3><p>You haven't submitted any tickets yet.</p><button class="btn-primary" id="goToSubmitBtn">+ Submit a Ticket</button>`;
+            document.getElementById("goToSubmitBtn")?.addEventListener("click", () => renderSubmitForm());
+            return;
+        }
+        
+        container.innerHTML = `
+            <h3>📌 My Tickets (${myTickets.length})</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
+                    <tbody>
+                        ${myTickets.map(t => `
+                            <tr>
+                                <td>#${t.ticketID}</td>
+                                <td>${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                <td>📍 ${t.location || 'Not specified'}</td>
+                                <td>${t.category || 'N/A'}</td>
+                                <td>${t.priorityLevel || 'Standard'}</td>
+                                <td>${t.status}</td>
+                                <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
+    }
 }
 
-// ADMIN VIEWS
+// ============ ADMIN VIEWS ============
 async function renderAdminDashboard() {
     const container = document.getElementById("mainContent");
-    container.innerHTML = `<div style="text-align:center; padding:2rem;">Loading tickets...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading tickets...</div>`;
     
-    const result = await getAllTickets();
-    const tickets = result.tickets;
+    try {
+        const tickets = await getAllTickets();
+        
+        const activeTickets = tickets.filter(t => t.status !== "Resolved");
+        const highPriority = tickets.filter(t => t.status !== "Resolved" && t.priorityLevel === "Urgent").length;
+        
+        container.innerHTML = `
+            <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
+            <div class="stat-grid">
+                <div class="stat-card"><div class="stat-title">Active Tickets</div><div class="stat-number">${activeTickets.length}</div></div>
+                <div class="stat-card"><div class="stat-title">High Priority</div><div class="stat-number" style="color:#E33E3E;">${highPriority}</div></div>
+            </div>
+            <div class="table-responsive">
+                <h4>🚨 Active Tickets</h4>
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Submitter</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>
+                        ${activeTickets.map(t => `
+                            <tr>
+                                <td>#${t.ticketID}</td>
+                                <td>User ${t.submitterID}</td>
+                                <td>${t.description?.substring(0, 40)}...</td>
+                                <td>📍 ${t.location || 'N/A'}</td>
+                                <td>${t.category || 'N/A'}</td>
+                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                <td>${t.status}</td>
+                                <td><button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        attachResolveButtons();
+    } catch (error) {
+        container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
+    }
+}
+
+async function renderAllTicketsAdmin() {
+    const container = document.getElementById("mainContent");
     
-    container.innerHTML = `
-        <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
-        <div class="stat-grid">
-            <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${tickets.length}</div></div>
-        </div>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody>
-                    ${tickets.map(t => `
-                        <tr>
-                            <td>#${t.ticketId}</td>
-                            <td>${t.description?.substring(0, 50)}...</td>
-                            <td>${t.category}</td>
-                            <td>${t.status}</td>
-                            <td><button class="btn-outline resolveBtn" data-id="${t.ticketId}">Resolve</button></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    attachResolveButtons();
+    try {
+        const tickets = await getAllTickets();
+        
+        container.innerHTML = `
+            <h3>📋 All Tickets (Admin View)</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Priority</th><th>Status</th></tr></thead>
+                    <tbody>
+                        ${tickets.map(t => `
+                            <tr>
+                                <td>#${t.ticketID}</td>
+                                <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                <td>${t.category || 'N/A'}</td>
+                                <td>${t.priorityLevel || 'Standard'}</td>
+                                <td>${t.status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
+    }
+}
+
+async function renderPriorityQueue() {
+    const container = document.getElementById("mainContent");
+    
+    try {
+        const tickets = await getAllTickets();
+        const active = tickets.filter(t => t.status !== "Resolved");
+        const sorted = [...active].sort((a, b) => {
+            const priority = { 'Urgent': 3, 'High Priority': 2, 'Issue': 1 };
+            return (priority[b.priorityLevel] || 0) - (priority[a.priorityLevel] || 0);
+        });
+        
+        container.innerHTML = `
+            <h3>📊 Priority Queue</h3>
+            <p>Tickets sorted by urgency: Urgent → High Priority → Issue</p>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Description</th><th>Priority</th><th>Status</th></tr></thead>
+                    <tbody>
+                        ${sorted.map(t => `
+                            <tr>
+                                <td>#${t.ticketID}</td>
+                                <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                <td>${t.status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
+    }
 }
 
 function attachResolveButtons() {
@@ -440,62 +475,16 @@ function attachResolveButtons() {
             const ticketId = btn.getAttribute("data-id");
             const note = prompt("Enter resolution notes:");
             if (note) {
-                const result = await resolveTicket(ticketId, currentUser.id, note);
-                showToast(result.message, result.success ? "success" : "error");
-                if (result.success) renderAdminDashboard();
+                try {
+                    await resolveTicket(ticketId, currentUser.id, note);
+                    showToast("Ticket resolved successfully!", "success");
+                    renderAdminDashboard();
+                } catch (error) {
+                    showToast(error.message, "error");
+                }
             }
         });
     });
-}
-
-async function renderAllTicketsAdmin() {
-    const container = document.getElementById("mainContent");
-    const result = await getAllTickets();
-    const tickets = result.tickets;
-    
-    container.innerHTML = `
-        <h3>📋 All Tickets (Admin View)</h3>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Status</th></tr></thead>
-                <tbody>
-                    ${tickets.map(t => `
-                        <tr>
-                            <td>#${t.ticketId}</td>
-                            <td>${t.description?.substring(0, 50)}...</td>
-                            <td>${t.category}</td>
-                            <td>${t.status}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-async function renderPriorityQueue() {
-    const container = document.getElementById("mainContent");
-    const result = await getAllTickets();
-    const tickets = result.tickets;
-    
-    container.innerHTML = `
-        <h3>📊 Priority Queue</h3>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>ID</th><th>Description</th><th>Category</th><th>Status</th></tr></thead>
-                <tbody>
-                    ${tickets.map(t => `
-                        <tr>
-                            <td>#${t.ticketId}</td>
-                            <td>${t.description?.substring(0, 50)}...</td>
-                            <td>${t.category}</td>
-                            <td>${t.status}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
 }
 
 function showToast(message, type = "info") {
