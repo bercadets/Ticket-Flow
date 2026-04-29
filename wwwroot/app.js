@@ -1,7 +1,7 @@
 
-// Current logged in user
 let currentUser = null;
 let isSidebarCollapsed = false;
+let showRegister = false; 
 
 // ============ API CALLS ============
 async function apiCall(endpoint, method = 'GET', body = null) {
@@ -29,6 +29,11 @@ async function login(username, password) {
     };
 }
 
+async function register(fName, lName, username, password) {
+    const result = await apiCall('/Auth/register', 'POST', { fName, lName, username, password });
+    return { success: true, message: result.message };
+}
+
 async function submitTicket(submitterId, description, location) {
     const result = await apiCall('/Tickets/submit', 'POST', { submitterID: submitterId, description, location });
     return { success: true, message: result.message };
@@ -46,11 +51,19 @@ async function resolveTicket(ticketId, adminId, note) {
     return await apiCall(`/Tickets/resolve?ticketId=${ticketId}&adminId=${adminId}&note=${encodeURIComponent(note)}`, 'POST');
 }
 
+async function updateTicketStatus(ticketId, status) {
+    return await apiCall(`/Tickets/update-status?ticketId=${ticketId}&status=${status}`, 'PUT');
+}
+
 // ============ UI FUNCTIONS ============
 function renderApp() {
     const root = document.getElementById("appRoot");
     if (!currentUser) {
-        renderLoginScreen(root);
+        if (showRegister) {
+            renderRegisterScreen(root);
+        } else {
+            renderLoginScreen(root);
+        }
     } else {
         renderMainApp(root);
     }
@@ -76,6 +89,11 @@ function renderLoginScreen(root) {
                     <input type="password" class="form-control" id="loginPassword" placeholder="Password">
                 </div>
                 <button class="btn-primary" id="loginBtn" style="width:100%; justify-content: center;">Log In →</button>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <p style="color: var(--text-muted); font-size: 13px;">Don't have an account? 
+                        <a href="#" id="showRegisterBtn" style="color: #357EDD; text-decoration: none; font-weight: 600;">Register here</a>
+                    </p>
+                </div>
                 <div id="loginError" style="margin-top: 16px;"></div>
             </div>
         </div>
@@ -100,6 +118,7 @@ function renderLoginScreen(root) {
                     initials: result.firstName.charAt(0) + (result.lastName?.charAt(0) || ''),
                     username: username
                 };
+                showRegister = false;
                 renderApp();
             } else {
                 showLoginError(result.message || "Login failed");
@@ -108,12 +127,128 @@ function renderLoginScreen(root) {
             showLoginError(error.message);
         }
     });
+    
+    document.getElementById("showRegisterBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        showRegister = true;
+        renderApp();
+    });
+}
+
+function renderRegisterScreen(root) {
+    root.innerHTML = `
+        <div class="login-container">
+            <div class="login-card">
+                <div style="text-align:center; margin-bottom: 1.5rem;">
+                    <div style="width: 56px; height: 56px; background: #357EDD; border-radius: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                        <span style="font-size: 28px; color: white;">📝</span>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 600;">Create Account</h2>
+                    <p style="color: var(--text-muted); font-size: 13px;">Join UniTicket today</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">First Name *</label>
+                    <input type="text" class="form-control" id="regFName" placeholder="Enter your first name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Last Name *</label>
+                    <input type="text" class="form-control" id="regLName" placeholder="Enter your last name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Username *</label>
+                    <input type="text" class="form-control" id="regUsername" placeholder="Choose a username">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password *</label>
+                    <input type="password" class="form-control" id="regPassword" placeholder="Create a password (min 6 characters)">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Confirm Password *</label>
+                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password">
+                </div>
+                
+                <button class="btn-primary" id="registerBtn" style="width:100%; justify-content: center;">Create Account →</button>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <p style="color: var(--text-muted); font-size: 13px;">Already have an account? 
+                        <a href="#" id="backToLoginBtn" style="color: #357EDD; text-decoration: none; font-weight: 600;">Back to Login</a>
+                    </p>
+                </div>
+                
+                <div id="registerError" style="margin-top: 16px;"></div>
+                <div id="registerSuccess" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+        const fName = document.getElementById("regFName").value.trim();
+        const lName = document.getElementById("regLName").value.trim();
+        const username = document.getElementById("regUsername").value.trim();
+        const password = document.getElementById("regPassword").value;
+        const confirmPassword = document.getElementById("regConfirmPassword").value;
+        
+    
+        document.getElementById("registerError").innerHTML = "";
+        document.getElementById("registerSuccess").innerHTML = "";
+        
+    
+        if (!fName || !lName || !username || !password) {
+            showRegisterError("Please fill in all fields");
+            return;
+        }
+        
+        if (password.length < 6) {
+            showRegisterError("Password must be at least 6 characters long");
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showRegisterError("Passwords do not match");
+            return;
+        }
+        
+        try {
+            const result = await register(fName, lName, username, password);
+            if (result.success) {
+                showRegisterSuccess("Registration successful! Redirecting to login...");
+                setTimeout(() => {
+                    showRegister = false;
+                    renderApp();
+                }, 2000);
+            }
+        } catch (error) {
+            showRegisterError(error.message);
+        }
+    });
+    
+    document.getElementById("backToLoginBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        showRegister = false;
+        renderApp();
+    });
 }
 
 function showLoginError(msg) {
     const errDiv = document.getElementById("loginError");
     errDiv.innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
     setTimeout(() => { errDiv.innerHTML = ""; }, 2500);
+}
+
+function showRegisterError(msg) {
+    const errDiv = document.getElementById("registerError");
+    errDiv.innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
+    setTimeout(() => { errDiv.innerHTML = ""; }, 3000);
+}
+
+function showRegisterSuccess(msg) {
+    const successDiv = document.getElementById("registerSuccess");
+    successDiv.innerHTML = `<div class="error-msg" style="background:#E8F5E9; color:#2C8E5A;">✅ ${msg}</div>`;
 }
 
 function renderMainApp(root) {
@@ -192,6 +327,7 @@ function attachNavEvents(isAdmin) {
             const view = el.getAttribute("data-view");
             if (view === "logout") {
                 currentUser = null;
+                showRegister = false;
                 renderApp();
                 return;
             }
@@ -246,7 +382,7 @@ async function renderStudentDashboard() {
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
                                 <td>${new Date(t.createdAt).toLocaleDateString()}</td>
                             </tr>
                         `).join('')}
@@ -410,7 +546,7 @@ async function renderAdminDashboard() {
                                     ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
                                     ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
                                     ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
-                                 </td>
+                                  </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -418,17 +554,15 @@ async function renderAdminDashboard() {
             </div>
         `;
         
-        // Add event listeners for Start buttons
         document.querySelectorAll(".startBtn").forEach(btn => {
             btn.addEventListener("click", async (e) => {
                 const ticketId = btn.getAttribute("data-id");
                 await updateTicketStatus(ticketId, "In Progress");
                 showToast(`Ticket #${ticketId} marked as In Progress`, "success");
-                renderAdminDashboard(); // Refresh the dashboard
+                renderAdminDashboard();
             });
         });
         
-        // Add event listeners for Resolve buttons
         document.querySelectorAll(".resolveBtn").forEach(btn => {
             btn.addEventListener("click", async (e) => {
                 const ticketId = btn.getAttribute("data-id");
@@ -437,7 +571,7 @@ async function renderAdminDashboard() {
                     try {
                         await resolveTicket(ticketId, currentUser.id, note);
                         showToast(`Ticket #${ticketId} resolved!`, "success");
-                        renderAdminDashboard(); // Refresh the dashboard
+                        renderAdminDashboard();
                     } catch (error) {
                         showToast(error.message, "error");
                     }
@@ -475,12 +609,12 @@ async function renderAllTicketsAdmin() {
                         ${tickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}</td>
+                                <td>${t.submitterID || 'N/A'}${" "} 
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -499,13 +633,13 @@ async function renderPriorityQueue() {
         const tickets = await getAllTickets();
         const active = tickets.filter(t => t.status !== "Resolved");
         const sorted = [...active].sort((a, b) => {
-            const priority = { 'Urgent': 3, 'High Priority': 2, 'Issue': 1 };
+            const priority = { 'Urgent': 3, 'High Priority': 2, 'Issue': 1, 'Standard': 1, 'Low': 0 };
             return (priority[b.priorityLevel] || 0) - (priority[a.priorityLevel] || 0);
         });
         
         container.innerHTML = `
             <h3>📊 Priority Queue</h3>
-            <p>Tickets sorted by urgency: Urgent → High Priority → Issue</p>
+            <p>Tickets sorted by urgency: Urgent → High Priority → Issue/Standard → Low</p>
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
@@ -524,12 +658,12 @@ async function renderPriorityQueue() {
                         ${sorted.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}</td>
+                                <td>${t.submitterID || 'N/A'}${" "} 
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
                                 <td><button class="btn-outline priorityResolve" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
                             </tr>
                         `).join('')}
@@ -538,7 +672,6 @@ async function renderPriorityQueue() {
             </div>
         `;
         
-        // Add event listeners for resolve buttons
         document.querySelectorAll(".priorityResolve").forEach(btn => {
             btn.addEventListener("click", async (e) => {
                 const ticketId = btn.getAttribute("data-id");
@@ -559,24 +692,6 @@ async function renderPriorityQueue() {
     }
 }
 
-function attachResolveButtons() {
-    document.querySelectorAll(".resolveBtn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
-            const ticketId = btn.getAttribute("data-id");
-            const note = prompt("Enter resolution notes:");
-            if (note) {
-                try {
-                    await resolveTicket(ticketId, currentUser.id, note);
-                    showToast("Ticket resolved successfully!", "success");
-                    renderAdminDashboard();
-                } catch (error) {
-                    showToast(error.message, "error");
-                }
-            }
-        });
-    });
-}
-
 function showToast(message, type = "info") {
     const toast = document.createElement("div");
     toast.className = "toast-notification";
@@ -586,25 +701,7 @@ function showToast(message, type = "info") {
     setTimeout(() => toast.remove(), 3000);
 }
 
-async function updateTicketStatus(ticketId, status) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/Tickets/update-status?ticketId=${ticketId}&status=${status}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to update status');
-        }
-        
-        return await response.json();
-    } catch (error) {
-        throw error;
-    }
-}
 
-// Load saved sidebar state and start
 const savedState = localStorage.getItem("sidebarCollapsed");
 isSidebarCollapsed = savedState === "true";
 renderApp();
