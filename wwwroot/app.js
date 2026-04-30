@@ -106,7 +106,7 @@ function renderLoginScreen(root) {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-control" id="loginPassword" placeholder="Password">
+                    <input type="password" class="form-control" id="loginPassword" placeholder="Password" onkeypress="handleLoginEnter(event)">
                 </div>
                 <button class="btn-primary" id="loginBtn" style="width:100%; justify-content: center;">Log In →</button>
                 <div style="text-align: center; margin-top: 1rem;">
@@ -119,9 +119,15 @@ function renderLoginScreen(root) {
         </div>
     `;
     
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-        const username = document.getElementById("loginUsername").value.trim();
-        const password = document.getElementById("loginPassword").value;
+
+    const usernameInput = document.getElementById("loginUsername");
+    const passwordInput = document.getElementById("loginPassword");
+    const loginBtn = document.getElementById("loginBtn");
+    
+
+    async function performLogin() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
         
         if (!username || !password) {
             showLoginError("Please enter username and password");
@@ -146,7 +152,23 @@ function renderLoginScreen(root) {
         } catch (error) {
             showLoginError(error.message);
         }
+    }
+    
+    usernameInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            performLogin();
+        }
     });
+    
+    passwordInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            performLogin();
+        }
+    });
+    
+    loginBtn.addEventListener("click", performLogin);
     
     document.getElementById("showRegisterBtn").addEventListener("click", (e) => {
         e.preventDefault();
@@ -189,7 +211,7 @@ function renderRegisterScreen(root) {
                 
                 <div class="form-group">
                     <label class="form-label">Confirm Password *</label>
-                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password">
+                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password" onkeypress="handleRegisterEnter(event)">
                 </div>
                 
                 <button class="btn-primary" id="registerBtn" style="width:100%; justify-content: center;">Create Account →</button>
@@ -206,18 +228,27 @@ function renderRegisterScreen(root) {
         </div>
     `;
     
-    document.getElementById("registerBtn").addEventListener("click", async () => {
-        const fName = document.getElementById("regFName").value.trim();
-        const lName = document.getElementById("regLName").value.trim();
-        const username = document.getElementById("regUsername").value.trim();
-        const password = document.getElementById("regPassword").value;
-        const confirmPassword = document.getElementById("regConfirmPassword").value;
-        
+
+    const fNameInput = document.getElementById("regFName");
+    const lNameInput = document.getElementById("regLName");
+    const usernameInput = document.getElementById("regUsername");
+    const passwordInput = document.getElementById("regPassword");
+    const confirmInput = document.getElementById("regConfirmPassword");
+    const registerBtn = document.getElementById("registerBtn");
     
+
+    async function performRegister() {
+        const fName = fNameInput.value.trim();
+        const lName = lNameInput.value.trim();
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmInput.value;
+        
+
         document.getElementById("registerError").innerHTML = "";
         document.getElementById("registerSuccess").innerHTML = "";
         
-    
+
         if (!fName || !lName || !username || !password) {
             showRegisterError("Please fill in all fields");
             return;
@@ -245,7 +276,20 @@ function renderRegisterScreen(root) {
         } catch (error) {
             showRegisterError(error.message);
         }
+    }
+    
+    // Add Enter key listener to all inputs
+    const inputs = [fNameInput, lNameInput, usernameInput, passwordInput, confirmInput];
+    inputs.forEach(input => {
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                performRegister();
+            }
+        });
     });
+    
+    registerBtn.addEventListener("click", performRegister);
     
     document.getElementById("backToLoginBtn").addEventListener("click", (e) => {
         e.preventDefault();
@@ -253,6 +297,27 @@ function renderRegisterScreen(root) {
         renderApp();
     });
 }
+
+
+document.addEventListener('keypress', function(event) {
+    // Check if login screen is showing
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn && event.key === 'Enter') {
+        const username = document.getElementById('loginUsername')?.value;
+        const password = document.getElementById('loginPassword')?.value;
+        if (username && password) {
+            event.preventDefault();
+            loginBtn.click();
+        }
+    }
+    
+
+    const registerBtn = document.getElementById('registerBtn');
+    if (registerBtn && event.key === 'Enter') {
+        event.preventDefault();
+        registerBtn.click();
+    }
+});
 
 function showLoginError(msg) {
     const errDiv = document.getElementById("loginError");
