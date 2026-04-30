@@ -3,6 +3,25 @@ let currentUser = null;
 let isSidebarCollapsed = false;
 let showRegister = false; 
 
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+function toggleTicketDetails(element) {
+    const card = element.closest('.mobile-ticket-card');
+    const details = card.querySelector('.ticket-details');
+    const icon = element.querySelector('.expand-icon');
+    
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        element.classList.add('expanded');
+    } else {
+        details.style.display = 'none';
+        element.classList.remove('expanded');
+    }
+}
+
+
 // ============ API CALLS ============
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = {
@@ -54,6 +73,7 @@ async function resolveTicket(ticketId, adminId, note) {
 async function updateTicketStatus(ticketId, status) {
     return await apiCall(`/Tickets/update-status?ticketId=${ticketId}&status=${status}`, 'PUT');
 }
+
 
 // ============ UI FUNCTIONS ============
 function renderApp() {
@@ -359,38 +379,124 @@ async function renderStudentDashboard() {
         const progress = myTickets.filter(t => t.status === "In Progress").length;
         const resolved = myTickets.filter(t => t.status === "Resolved").length;
         
-        container.innerHTML = `
-            <div style="margin-bottom: 1.5rem;">
-                <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
-                <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
+        // Check if mobile
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            container.innerHTML = `
+    <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); -webkit-background-clip: text; background-clip: text; color: transparent;">Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
+        <p style="color: var(--text-muted);">Here's what's happening with your tickets</p>
+    </div>
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-title">Total Tickets</div>
+            <div class="stat-number">${myTickets.length}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Open</div>
+            <div class="stat-number" style="color:#E9A23B;">${open}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">In Progress</div>
+            <div class="stat-number" style="color:#357EDD;">${progress}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Resolved</div>
+            <div class="stat-number" style="color:#2C8E5A;">${resolved}</div>
+        </div>
+    </div>
+    <div class="filter-bar">
+        <button class="btn-primary" id="newTicketBtn">
+            <span>+</span> New Ticket
+        </button>
+    </div>
+    <div class="mobile-tickets">
+        ${myTickets.map(t => `
+            <div class="mobile-ticket-card" data-ticket-id="${t.ticketID}">
+                <div class="ticket-header" onclick="toggleTicketDetails(this)">
+                    <div class="ticket-header-left">
+                        <span class="ticket-id">#${t.ticketID}</span>
+                        <span class="ticket-status-badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="ticket-summary">
+                    <div class="ticket-desc">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</div>
+                </div>
+                <div class="ticket-details" style="display: none;">
+                    <div class="detail-row">
+                        <span class="detail-label">📍 Location</span>
+                        <span class="detail-value">${t.location || 'Not specified'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">🏷️ Category</span>
+                        <span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">⚡ Priority</span>
+                        <span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📅 Submitted</span>
+                        <span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📝 Full Description</span>
+                        <span class="detail-value">${t.description}</span>
+                    </div>
+                </div>
             </div>
-            <div class="stat-grid">
-                <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${myTickets.length}</div></div>
-                <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
-                <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
-                <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
-            </div>
-            <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
-                    <tbody>
-                        ${myTickets.map(t => `
+        `).join('')}
+    </div>
+`;
+        } else {
+            // DESKTOP VIEW - Regular Table
+            container.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
+                    <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${myTickets.length}</div></div>
+                    <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
+                    <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
+                    <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
+                </div>
+                <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                <td><strong>#${t.ticketID}</strong></td>
-                                <td>${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
-                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
-                                <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+                                <th>ID</th>
+                                <th>Description</th>
+                                <th>Location</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
+                        </thead>
+                        <tbody>
+                            ${myTickets.map(t => `
+                                <tr>
+                                    <td data-label="ID"><strong>#${t.ticketID}</strong></td>
+                                    <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                    <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
+                                    <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                    <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                    <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
+                                    <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
         document.getElementById("newTicketBtn")?.addEventListener("click", () => renderSubmitForm());
+        
     } catch (error) {
         container.innerHTML = `<div style="color:red; padding:2rem;">❌ Error loading tickets: ${error.message}</div>`;
     }
@@ -700,7 +806,6 @@ function showToast(message, type = "info") {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
-
 
 const savedState = localStorage.getItem("sidebarCollapsed");
 isSidebarCollapsed = savedState === "true";
