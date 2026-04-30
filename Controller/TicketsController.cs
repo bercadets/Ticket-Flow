@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketFlowAPI.Models;
+using MySql.Data.MySqlClient;
 using TicketFlowAPI.Services;
 using System;
 
@@ -24,7 +25,7 @@ namespace TicketFlowAPI.Controllers
         {
             try
             {
-                // Get AI prediction
+
                 var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
                 
                 if (prediction == null)
@@ -32,10 +33,10 @@ namespace TicketFlowAPI.Controllers
                     return StatusCode(503, new { error = "AI service unavailable - check API key" });
                 }
                 
-                // Use AI prediction values
+
                 string category = prediction.Value.Category;
-                string priorityLevel = prediction.Value.Label; // "Urgent", "High Priority", or "Issue"
-                int priorityWeight = prediction.Value.Weight;  // 1, 2, or 3
+                string priorityLevel = prediction.Value.Label; 
+                int priorityWeight = prediction.Value.Weight;  
                 
                 string sql = @"
                     INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight, Status) 
@@ -113,24 +114,22 @@ namespace TicketFlowAPI.Controllers
 
                 try
                 {
-                    
                     string copySql = @"
-                            INSERT INTO TicketArchive (TicketID, SubmitterID, Description, Location, Category, FinalPriority, CreatedAt)
-                            SELECT TicketID, SubmitterID, Description, Location, Category, PriorityLevel, CreatedAt 
-                            FROM ActiveTickets WHERE TicketID = @TicketID";
+                        INSERT INTO TicketArchive (TicketID, SubmitterID, Description, Location, Category, FinalPriority, CreatedAt)
+                        SELECT TicketID, SubmitterID, Description, Location, Category, PriorityLevel, CreatedAt 
+                        FROM ActiveTickets WHERE TicketID = @TicketID";
                         
-                        using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(copySql, connection, transaction))
-                        {
-                            cmd.Parameters.AddWithValue("@TicketID", ticketId);
-                            cmd.ExecuteNonQuery();
-                        }
+                    using (var cmd = new MySqlCommand(copySql, connection, transaction))
+                    {
+                        cmd.Parameters.AddWithValue("@TicketID", ticketId);
+                        cmd.ExecuteNonQuery();
+                    }
 
-                    
                     string noteSql = @"
-                    INSERT INTO ResolutionNotes (TicketID, AdminID, NoteText) 
-                    VALUES (@TicketID, @AdminID, @Note)";
-                
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(noteSql, connection, transaction))
+                        INSERT INTO ResolutionNotes (TicketID, AdminID, NoteText) 
+                        VALUES (@TicketID, @AdminID, @Note)";
+                    
+                    using (var cmd = new MySqlCommand(noteSql, connection, transaction))
                     {
                         cmd.Parameters.AddWithValue("@TicketID", ticketId);
                         cmd.Parameters.AddWithValue("@AdminID", adminId);
@@ -138,21 +137,20 @@ namespace TicketFlowAPI.Controllers
                         cmd.ExecuteNonQuery();
                     }
 
+                    string updateSql = "UPDATE ActiveTickets SET Status = 'Resolved' WHERE TicketID = @TicketID";
                     
-                    string deleteSql = "DELETE FROM ActiveTickets WHERE TicketID = @TicketID";
-                
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(deleteSql, connection, transaction))
+                    using (var cmd = new MySqlCommand(updateSql, connection, transaction))
                     {
                         cmd.Parameters.AddWithValue("@TicketID", ticketId);
                         cmd.ExecuteNonQuery();
                     }
                     
                     transaction.Commit();
-                    return Ok(new { message = "Ticket resolved and archived successfully." });
+                    return Ok(new { message = "Ticket resolved successfully." });
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback(); // Undo everything if any part fails
+                    transaction.Rollback();
                     return StatusCode(500, new { error = "Resolution failed: " + ex.Message });
                 }
             }
@@ -163,7 +161,7 @@ namespace TicketFlowAPI.Controllers
         {
             try
             {
-                // Sort by priorityWeight
+
                 string sql = "SELECT TicketID, SubmitterID, Description, Location, Category, PriorityLevel, Status FROM ActiveTickets ORDER BY PriorityWeight DESC";
                 
                 var dataTable = _dbHelper.ExecuteSelectQuery(sql);
@@ -198,7 +196,6 @@ namespace TicketFlowAPI.Controllers
         {
             try
             {
-                // Validate status
                 if (status != "Open" && status != "In Progress" && status != "Resolved")
                 {
                     return BadRequest(new { error = "Invalid status. Use: Open, In Progress, or Resolved" });
