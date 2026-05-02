@@ -82,7 +82,7 @@ namespace TicketFlowAPI.Services
                     `Category` varchar(50) NOT NULL,
                     `PriorityLevel` varchar(20) NOT NULL,
                     `PriorityWeight` int(11) NOT NULL,
-                    `Status` varchar(20) DEFAULT 'Open' CHECK (`Status` in ('Open','In Progress')),
+                    `Status` varchar(20) DEFAULT 'Open' CHECK (`Status` in ('Open','In Progress','Resolved')),
                     `CreatedAt` datetime DEFAULT current_timestamp()
                 );";
 
