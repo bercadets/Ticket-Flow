@@ -301,6 +301,15 @@ body {
 }
 .btn-outline:hover { background: var(--primary-light); border-color: var(--primary); }
 
+.hidden {
+    display: none;
+}
+
+.ticket-row-hover:hover {
+    background-color: #f1f3f5;
+    transition: background-color 0.2s ease;
+}
+
 /* Forms */
 .form-card {
   background: var(--card-white);

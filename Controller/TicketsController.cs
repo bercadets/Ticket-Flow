@@ -162,7 +162,12 @@ namespace TicketFlowAPI.Controllers
             try
             {
 
-                string sql = "SELECT TicketID, SubmitterID, Description, Location, Category, PriorityLevel, Status FROM ActiveTickets ORDER BY PriorityWeight DESC";
+                string sql = @"
+                    SELECT t.*, n.NoteText, a.CreatedAt
+                    FROM ActiveTickets t
+                    LEFT JOIN ResolutionNotes n ON t.TicketID = n.TicketID
+                    LEFT JOIN ActiveTickets a ON n.TicketID = a.TicketID
+                    ORDER BY t.CreatedAt DESC";
                 
                 var dataTable = _dbHelper.ExecuteSelectQuery(sql);
 
@@ -179,7 +184,9 @@ namespace TicketFlowAPI.Controllers
                         Location = row["Location"]?.ToString() ?? "Not specified",
                         Category = row["Category"].ToString(),
                         PriorityLevel = row["PriorityLevel"]?.ToString() ?? "Standard", 
-                        Status = row["Status"].ToString()
+                        Status = row["Status"].ToString(),
+                        ResolutionNote = row["NoteText"] != System.DBNull.Value ? row["NoteText"].ToString() : null,
+                        CreatedAt = System.Convert.ToDateTime(row["CreatedAt"])
                     });
                 }
 

@@ -70,7 +70,6 @@ namespace TicketFlowAPI.Controllers
                     var row = result.Rows[0];
                     string storedDatabaseHash = row["PasswordHash"].ToString();
 
-                
                     bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(login.Password, storedDatabaseHash);
 
                     if (isPasswordCorrect)
@@ -94,5 +93,46 @@ namespace TicketFlowAPI.Controllers
                 return StatusCode(500, new { error = "Login failed: " + ex.Message });
             }
         }
+
+        [HttpPost("reset-password")]
+            public IActionResult ResetPassword([FromBody] PasswordReset request)
+            {
+                try
+                {
+                string checkSql = "SELECT UserID FROM Users WHERE FName = @FName AND LName = @LName AND Username = @Username";
+                    
+                    var checkParams = new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "@FName", request.FName },
+                        { "@LName", request.LName },
+                        { "@Username", request.Username }
+                    };
+
+                    var resultTable = _dbHelper.ExecuteSelectQuery(checkSql, checkParams);
+
+                    if (resultTable.Rows.Count == 0)
+                    {
+                     
+                        return BadRequest(new { error = "Account not found or details do not match." });
+                    }
+
+                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                    
+                    string updateSql = "UPDATE Users SET PasswordHash = @NewPassword WHERE Username = @Username";
+                    var updateParams = new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "@NewPassword", hashedPassword },
+                        { "@Username", request.Username }
+                    };
+
+                    _dbHelper.ExecuteNonQuery(updateSql, updateParams);
+
+                    return Ok(new { message = "Password successfully reset! You can now log in." });
+                }
+                catch (System.Exception ex)
+                {
+                    return StatusCode(500, new { error = "An error occurred: " + ex.Message });
+                }
+            }
     }
 }
