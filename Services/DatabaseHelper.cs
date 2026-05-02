@@ -12,22 +12,28 @@ namespace TicketFlowAPI.Services
         {
             return new MySqlConnection(connectionString);
         }
-        public DataTable ExecuteSelectQuery(string query)
-        {
-            DataTable dataTable = new DataTable();
-            using (MySqlConnection conn = GetConnection())
+        public DataTable ExecuteSelectQuery(string sql, Dictionary<string, object> parameters = null)
             {
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    conn.Open();
-                    using (MySqlDataAdapter adapter = new MySqlDataAdapter(cmd))
+                    using (var command = new MySqlCommand(sql, connection))
                     {
-                        adapter.Fill(dataTable);
+                        if (parameters != null)
+                        {
+                            foreach (var param in parameters)
+                            {
+                                command.Parameters.AddWithValue(param.Key, param.Value);
+                            }
+                        }
+                        var dataTable = new DataTable();
+                        using (var adapter = new MySqlDataAdapter(command))
+                        {
+                            adapter.Fill(dataTable);
+                        }
+                        return dataTable;
                     }
                 }
             }
-            return dataTable;
-        }
 
         public int ExecuteModifyQuery(string query, Dictionary<string, object> parameters = null)
         {
@@ -115,5 +121,25 @@ namespace TicketFlowAPI.Services
             cmd.ExecuteNonQuery();
         }
     }
+
+        public int ExecuteNonQuery(string sql, Dictionary<string, object> parameters = null)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    if (parameters != null)
+                    {
+                        foreach (var param in parameters)
+                        {
+                            command.Parameters.AddWithValue(param.Key, param.Value);
+                        }
+                    }
+                    connection.Open();
+                    return command.ExecuteNonQuery();
+                }
+            }
+        }
+
     }
 }

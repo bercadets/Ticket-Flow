@@ -431,6 +431,18 @@ function attachNavEvents(isAdmin) {
     });
 }
 
+async function toggleNote(ticketId) {
+    const noteRow = document.getElementById(`note-${ticketId}`);
+    
+    if (noteRow) {
+        if (noteRow.classList.contains("hidden")) {
+            noteRow.classList.remove("hidden");
+        } else {
+            noteRow.classList.add("hidden");
+        }
+    }
+}
+
 // ============ STUDENT VIEWS ============
 async function renderStudentDashboard() {
     const container = document.getElementById("mainContent");
@@ -647,7 +659,7 @@ async function renderMyTickets() {
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading all your tickets...</div>`;
     
     try {
-        const tickets = await getActiveTickets();
+        const tickets = await getAllTickets();
         const allMyTickets = tickets.filter(t => t.submitterID === currentUser.id);
         
         const activeCount = allMyTickets.filter(t => t.status !== "Resolved").length;
@@ -757,7 +769,7 @@ async function renderMyTickets() {
                         </thead>
                         <tbody>
                             ${allMyTickets.map(t => `
-                                <tr>
+                                <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})" class="ticket-row-hover"` : ''}>
                                     <td data-label="ID"><strong>#${t.ticketID}</strong></td>
                                     <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
                                     <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
@@ -766,6 +778,14 @@ async function renderMyTickets() {
                                     <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
                                     <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
                                 </tr>
+                            <tr id="note-${t.ticketID}" class="hidden">
+                                <td colspan="7" style="padding: 0; border: none;">
+                                <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                                <strong>IT Resolution Note:</strong><br> 
+                                ${t.resolutionNote || 'No resolution note provided for this ticket.'}
+                                </div>
+                                </td>
+                            </tr>
                             `).join('')}
                         </tbody>
                     </table>
@@ -789,6 +809,11 @@ async function renderAdminDashboard() {
         const urgentCount = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
         const inProgressCount = activeTickets.filter(t => t.status === "In Progress").length;
         const openCount = activeTickets.filter(t => t.status === "Open").length;
+
+        activeTickets.sort((a, b) => {
+            const priority = { 'Urgent': 3, 'High Priority': 2, 'Issue': 1, 'Standard': 1, 'Low': 0 };
+            return (priority[b.priorityLevel] || 0) - (priority[a.priorityLevel] || 0);
+        });
         
         container.innerHTML = `
             <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
@@ -888,14 +913,22 @@ async function renderAllTicketsAdmin() {
                     </thead>
                     <tbody>
                         ${tickets.map(t => `
-                            <tr>
+                            <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})" class="ticket-row-hover"` : ''}>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}${" "} 
+                                <td>${t.submitterID || 'N/A'}${" "}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
                                 <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
                                 <td><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
+                            </tr>
+                            <tr id="note-${t.ticketID}" class="hidden">
+                                <td colspan="7" style="padding: 0; border: none;">
+                                <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                                <strong>IT Resolution Note:</strong><br> 
+                                ${t.resolutionNote || 'No resolution note provided for this ticket.'}
+                                </div>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>

@@ -9,5 +9,9 @@ namespace TicketFlowAPI.Models
         public string Category { get; set; }
         public string PriorityLevel { get; set; }
         public string Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+
+        public string ResolutionNote { get; set; }
     }
 }
