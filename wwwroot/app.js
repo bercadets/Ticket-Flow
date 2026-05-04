@@ -1,7 +1,7 @@
 
 let currentUser = null;
 let isSidebarCollapsed = false;
-let showRegister = false; 
+let showRegister = false;
 
 function isMobile() {
     return window.innerWidth <= 768;
@@ -21,8 +21,6 @@ function toggleTicketDetails(element) {
     }
 }
 
-
-// ============ API CALLS ============
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = {
         method: method,
@@ -74,8 +72,25 @@ async function updateTicketStatus(ticketId, status) {
     return await apiCall(`/Tickets/update-status?ticketId=${ticketId}&status=${status}`, 'PUT');
 }
 
+async function resetPassword(fName, lName, username, newPassword, confirmPassword) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                fName: fName,
+                lName: lName,
+                username: username,
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
+            })
+        });
+        return await response.json();
+    } catch (error) {
+        return { error: error.message };
+    }
+}
 
-// ============ UI FUNCTIONS ============
 function renderApp() {
     const root = document.getElementById("appRoot");
     if (!currentUser) {
@@ -100,34 +115,47 @@ function renderLoginScreen(root) {
                     <h2 style="font-size: 24px; font-weight: 600;">UniTicket</h2>
                     <p style="color: var(--text-muted); font-size: 13px;">Smart IT Support Desk</p>
                 </div>
+                
                 <div class="form-group">
                     <label class="form-label">Username</label>
                     <input type="text" class="form-control" id="loginUsername" placeholder="Username">
                 </div>
+                
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-control" id="loginPassword" placeholder="Password" onkeypress="handleLoginEnter(event)">
+                    <input type="password" class="form-control" id="loginPassword" placeholder="Password">
                 </div>
+                
                 <button class="btn-primary" id="loginBtn" style="width:100%; justify-content: center;">Log In →</button>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <p style="color: var(--text-muted); font-size: 13px;">Don't have an account? 
+                
+                <div style="text-align: center; margin-top: 0.75rem;">
+                    <a href="#" id="forgotPasswordBtn" style="color: var(--text-muted); font-size: 12px; text-decoration: none;">Forgot Password?</a>
+                </div>
+                
+                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-light); text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 13px; margin: 0;">
+                        Don't have an account? 
                         <a href="#" id="showRegisterBtn" style="color: #357EDD; text-decoration: none; font-weight: 600;">Register here</a>
                     </p>
                 </div>
+                
                 <div id="loginError" style="margin-top: 16px;"></div>
             </div>
         </div>
     `;
     
-
-    const usernameInput = document.getElementById("loginUsername");
-    const passwordInput = document.getElementById("loginPassword");
-    const loginBtn = document.getElementById("loginBtn");
     
-
-    async function performLogin() {
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value;
+    const forgotBtn = document.getElementById("forgotPasswordBtn");
+    forgotBtn.addEventListener("mouseenter", () => {
+        forgotBtn.style.textDecoration = "underline";
+    });
+    forgotBtn.addEventListener("mouseleave", () => {
+        forgotBtn.style.textDecoration = "none";
+    });
+    
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+        const username = document.getElementById("loginUsername").value.trim();
+        const password = document.getElementById("loginPassword").value;
         
         if (!username || !password) {
             showLoginError("Please enter username and password");
@@ -152,29 +180,138 @@ function renderLoginScreen(root) {
         } catch (error) {
             showLoginError(error.message);
         }
-    }
+    });
+    
+    const usernameInput = document.getElementById("loginUsername");
+    const passwordInput = document.getElementById("loginPassword");
     
     usernameInput.addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            performLogin();
+            document.getElementById("loginBtn").click();
         }
     });
     
     passwordInput.addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            performLogin();
+            document.getElementById("loginBtn").click();
         }
     });
     
-    loginBtn.addEventListener("click", performLogin);
+    document.getElementById("forgotPasswordBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        showResetPasswordScreen();
+    });
     
     document.getElementById("showRegisterBtn").addEventListener("click", (e) => {
         e.preventDefault();
         showRegister = true;
         renderApp();
     });
+}
+
+function showResetPasswordScreen() {
+    const root = document.getElementById("appRoot");
+    root.innerHTML = `
+        <div class="login-container">
+            <div class="login-card">
+                <div style="text-align:center; margin-bottom: 1.5rem;">
+                    <div style="width: 56px; height: 56px; background: #2C8E5A; border-radius: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                        <span style="font-size: 28px; color: white;">🔑</span>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 600;">Reset Password</h2>
+                    <p style="color: var(--text-muted); font-size: 13px;">Enter your account details to reset password</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="resetFName" placeholder="Enter your first name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="resetLName" placeholder="Enter your last name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" id="resetUsername" placeholder="Enter your username">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="Min. 6 characters">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password">
+                </div>
+                
+                <button class="btn-primary" id="resetPasswordBtn" style="width:100%; justify-content: center;">Reset Password</button>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="#" id="backToLoginBtn" style="color: #357EDD; text-decoration: none;">← Back to Login</a>
+                </div>
+                
+                <div id="resetMessage" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById("resetPasswordBtn").addEventListener("click", async () => {
+        const fName = document.getElementById("resetFName").value.trim();
+        const lName = document.getElementById("resetLName").value.trim();
+        const username = document.getElementById("resetUsername").value.trim();
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        
+        document.getElementById("resetMessage").innerHTML = "";
+        
+        if (!fName || !lName || !username) {
+            showResetMessage("Please fill in all identity fields", "error");
+            return;
+        }
+        
+        if (!newPassword || !confirmPassword) {
+            showResetMessage("Please enter a new password", "error");
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            showResetMessage("Password must be at least 6 characters", "error");
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            showResetMessage("Passwords do not match", "error");
+            return;
+        }
+        
+        const result = await resetPassword(fName, lName, username, newPassword, confirmPassword);
+        
+        if (result.message) {
+            showResetMessage(result.message, "success");
+            setTimeout(() => {
+                renderApp();
+            }, 2000);
+        } else {
+            showResetMessage(result.error || "Password reset failed", "error");
+        }
+    });
+    
+    document.getElementById("backToLoginBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        renderApp();
+    });
+}
+
+function showResetMessage(msg, type) {
+    const msgDiv = document.getElementById("resetMessage");
+    if (msgDiv) {
+        msgDiv.innerHTML = `<div class="error-msg" style="background: ${type === 'success' ? '#E8F5E9' : '#FEF2F0'}; color: ${type === 'success' ? '#2C8E5A' : '#D14545'};">${msg}</div>`;
+    }
 }
 
 function renderRegisterScreen(root) {
@@ -190,28 +327,28 @@ function renderRegisterScreen(root) {
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">First Name *</label>
+                    <label class="form-label">First Name</label>
                     <input type="text" class="form-control" id="regFName" placeholder="Enter your first name">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Last Name *</label>
+                    <label class="form-label">Last Name</label>
                     <input type="text" class="form-control" id="regLName" placeholder="Enter your last name">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Username *</label>
+                    <label class="form-label">Username</label>
                     <input type="text" class="form-control" id="regUsername" placeholder="Choose a username">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Password *</label>
+                    <label class="form-label">Password</label>
                     <input type="password" class="form-control" id="regPassword" placeholder="Create a password (min 6 characters)">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Confirm Password *</label>
-                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password" onkeypress="handleRegisterEnter(event)">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password">
                 </div>
                 
                 <button class="btn-primary" id="registerBtn" style="width:100%; justify-content: center;">Create Account →</button>
@@ -228,7 +365,6 @@ function renderRegisterScreen(root) {
         </div>
     `;
     
-
     const fNameInput = document.getElementById("regFName");
     const lNameInput = document.getElementById("regLName");
     const usernameInput = document.getElementById("regUsername");
@@ -236,7 +372,6 @@ function renderRegisterScreen(root) {
     const confirmInput = document.getElementById("regConfirmPassword");
     const registerBtn = document.getElementById("registerBtn");
     
-
     async function performRegister() {
         const fName = fNameInput.value.trim();
         const lName = lNameInput.value.trim();
@@ -244,11 +379,9 @@ function renderRegisterScreen(root) {
         const password = passwordInput.value;
         const confirmPassword = confirmInput.value;
         
-
         document.getElementById("registerError").innerHTML = "";
         document.getElementById("registerSuccess").innerHTML = "";
         
-
         if (!fName || !lName || !username || !password) {
             showRegisterError("Please fill in all fields");
             return;
@@ -278,7 +411,6 @@ function renderRegisterScreen(root) {
         }
     }
     
-    // Add Enter key listener to all inputs
     const inputs = [fNameInput, lNameInput, usernameInput, passwordInput, confirmInput];
     inputs.forEach(input => {
         input.addEventListener("keypress", function(event) {
@@ -297,27 +429,6 @@ function renderRegisterScreen(root) {
         renderApp();
     });
 }
-
-
-document.addEventListener('keypress', function(event) {
-    // Check if login screen is showing
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn && event.key === 'Enter') {
-        const username = document.getElementById('loginUsername')?.value;
-        const password = document.getElementById('loginPassword')?.value;
-        if (username && password) {
-            event.preventDefault();
-            loginBtn.click();
-        }
-    }
-    
-
-    const registerBtn = document.getElementById('registerBtn');
-    if (registerBtn && event.key === 'Enter') {
-        event.preventDefault();
-        registerBtn.click();
-    }
-});
 
 function showLoginError(msg) {
     const errDiv = document.getElementById("loginError");
@@ -431,19 +542,6 @@ function attachNavEvents(isAdmin) {
     });
 }
 
-async function toggleNote(ticketId) {
-    const noteRow = document.getElementById(`note-${ticketId}`);
-    
-    if (noteRow) {
-        if (noteRow.classList.contains("hidden")) {
-            noteRow.classList.remove("hidden");
-        } else {
-            noteRow.classList.add("hidden");
-        }
-    }
-}
-
-// ============ STUDENT VIEWS ============
 async function renderStudentDashboard() {
     const container = document.getElementById("mainContent");
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading your tickets...</div>`;
@@ -466,28 +564,12 @@ async function renderStudentDashboard() {
                     <p style="color: var(--text-muted);">Track and manage your IT requests</p>
                 </div>
                 <div class="stat-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">Open</div>
-                        <div class="stat-number" style="color:#E9A23B;">${open}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">In Progress</div>
-                        <div class="stat-number" style="color:#357EDD;">${progress}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Resolved</div>
-                        <div class="stat-number" style="color:#2C8E5A;">${resolved}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Total Tickets</div>
-                        <div class="stat-number">${allMyTickets.length}</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
+                    <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
+                    <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
+                    <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${allMyTickets.length}</div></div>
                 </div>
-                <div class="filter-bar">
-                    <button class="btn-primary" id="newTicketBtn">
-                        <span>+</span> New Ticket
-                    </button>
-                </div>
+                <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
                 <h3 style="margin: 1rem 0 0.75rem 0;">Active Tickets</h3>
                 ${activeOnly.length === 0 ? `
                     <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;">
@@ -509,26 +591,11 @@ async function renderStudentDashboard() {
                                     <div class="ticket-desc">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</div>
                                 </div>
                                 <div class="ticket-details" style="display: none;">
-                                    <div class="detail-row">
-                                        <span class="detail-label">📍 Location</span>
-                                        <span class="detail-value">${t.location || 'Not specified'}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">🏷️ Category</span>
-                                        <span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">⚡ Priority</span>
-                                        <span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">📅 Submitted</span>
-                                        <span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">📝 Full Description</span>
-                                        <span class="detail-value">${t.description}</span>
-                                    </div>
+                                    <div class="detail-row"><span class="detail-label">📍 Location</span><span class="detail-value">${t.location || 'Not specified'}</span></div>
+                                    <div class="detail-row"><span class="detail-label">🏷️ Category</span><span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span></div>
+                                    <div class="detail-row"><span class="detail-label">⚡ Priority</span><span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span></div>
+                                    <div class="detail-row"><span class="detail-label">📅 Submitted</span><span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span></div>
+                                    <div class="detail-row"><span class="detail-label">📝 Full Description</span><span class="detail-value">${t.description}</span></div>
                                 </div>
                             </div>
                         `).join('')}
@@ -557,17 +624,7 @@ async function renderStudentDashboard() {
                 ` : `
                     <div class="table-responsive">
                         <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Description</th>
-                                    <th>Location</th>
-                                    <th>Category</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
                             <tbody>
                                 ${activeOnly.map(t => `
                                     <tr>
@@ -668,11 +725,7 @@ async function renderMyTickets() {
         const isMobile = window.innerWidth <= 768;
         
         if (allMyTickets.length === 0) {
-            container.innerHTML = `
-                <h3>📌 My Tickets</h3>
-                <p>You haven't submitted any tickets yet.</p>
-                <button class="btn-primary" id="goToSubmitBtn">+ Submit a Ticket</button>
-            `;
+            container.innerHTML = `<h3>📌 My Tickets</h3><p>You haven't submitted any tickets yet.</p><button class="btn-primary" id="goToSubmitBtn">+ Submit a Ticket</button>`;
             document.getElementById("goToSubmitBtn")?.addEventListener("click", () => renderSubmitForm());
             return;
         }
@@ -682,15 +735,9 @@ async function renderMyTickets() {
                 <div style="margin-bottom: 1.5rem;">
                     <h3>📌 My Complete Ticket History</h3>
                     <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
-                        <span style="background: #E3F2FD; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                            🟡 Active: ${activeCount}
-                        </span>
-                        <span style="background: #E8F5E9; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                            ✅ Resolved: ${resolvedCount}
-                        </span>
-                        <span style="background: #F3E5F5; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                            📋 Total: ${allMyTickets.length}
-                        </span>
+                        <span style="background: #E3F2FD; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">🟡 Active: ${activeCount}</span>
+                        <span style="background: #E8F5E9; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">✅ Resolved: ${resolvedCount}</span>
+                        <span style="background: #F3E5F5; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">📋 Total: ${allMyTickets.length}</span>
                     </div>
                 </div>
                 <div class="mobile-tickets">
@@ -707,32 +754,12 @@ async function renderMyTickets() {
                                 <div class="ticket-desc">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</div>
                             </div>
                             <div class="ticket-details" style="display: none;">
-                                <div class="detail-row">
-                                    <span class="detail-label">📍 Location</span>
-                                    <span class="detail-value">${t.location || 'Not specified'}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">🏷️ Category</span>
-                                    <span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">⚡ Priority</span>
-                                    <span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">📅 Submitted</span>
-                                    <span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">📝 Full Description</span>
-                                    <span class="detail-value">${t.description}</span>
-                                </div>
-                                ${t.status === 'Resolved' ? `
-                                <div class="detail-row">
-                                    <span class="detail-label">✅ Resolved</span>
-                                    <span class="detail-value" style="color: #2C8E5A;">Ticket closed</span>
-                                </div>
-                                ` : ''}
+                                <div class="detail-row"><span class="detail-label">📍 Location</span><span class="detail-value">${t.location || 'Not specified'}</span></div>
+                                <div class="detail-row"><span class="detail-label">🏷️ Category</span><span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span></div>
+                                <div class="detail-row"><span class="detail-label">⚡ Priority</span><span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span></div>
+                                <div class="detail-row"><span class="detail-label">📅 Submitted</span><span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span></div>
+                                <div class="detail-row"><span class="detail-label">📝 Full Description</span><span class="detail-value">${t.description}</span></div>
+                                ${t.status === 'Resolved' ? `<div class="detail-row"><span class="detail-label">✅ Resolved</span><span class="detail-value" style="color: #2C8E5A;">Ticket closed</span></div>` : ''}
                             </div>
                         </div>
                     `).join('')}
@@ -743,33 +770,17 @@ async function renderMyTickets() {
                 <div style="margin-bottom: 1.5rem;">
                     <h3>📌 My Complete Ticket History</h3>
                     <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                        <span style="background: #E3F2FD; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
-                            🟡 Active: ${activeCount}
-                        </span>
-                        <span style="background: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
-                            ✅ Resolved: ${resolvedCount}
-                        </span>
-                        <span style="background: #F3E5F5; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
-                            📋 Total: ${allMyTickets.length}
-                        </span>
+                        <span style="background: #E3F2FD; padding: 4px 12px; border-radius: 20px; font-size: 13px;">🟡 Active: ${activeCount}</span>
+                        <span style="background: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 13px;">✅ Resolved: ${resolvedCount}</span>
+                        <span style="background: #F3E5F5; padding: 4px 12px; border-radius: 20px; font-size: 13px;">📋 Total: ${allMyTickets.length}</span>
                     </div>
                 </div>
                 <div class="table-responsive">
                     <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Description</th>
-                                <th>Location</th>
-                                <th>Category</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
                         <tbody>
                             ${allMyTickets.map(t => `
-                                <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})" class="ticket-row-hover"` : ''}>
+                                <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
                                     <td data-label="ID"><strong>#${t.ticketID}</strong></td>
                                     <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
                                     <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
@@ -778,14 +789,14 @@ async function renderMyTickets() {
                                     <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
                                     <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
                                 </tr>
-                            <tr id="note-${t.ticketID}" class="hidden">
-                                <td colspan="7" style="padding: 0; border: none;">
-                                <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
-                                <strong>IT Resolution Note:</strong><br> 
-                                ${t.resolutionNote || 'No resolution note provided for this ticket.'}
-                                </div>
-                                </td>
-                            </tr>
+                                <tr id="note-${t.ticketID}" class="hidden">
+                                    <td colspan="7" style="padding: 0; border: none;">
+                                        <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                                            <strong>IT Resolution Note:</strong><br> 
+                                            ${t.resolutionNote || 'No resolution note provided for this ticket.'}
+                                        </div>
+                                    </td>
+                                </tr>
                             `).join('')}
                         </tbody>
                     </table>
@@ -797,13 +808,23 @@ async function renderMyTickets() {
     }
 }
 
-// ============ ADMIN VIEWS ============
+async function toggleNote(ticketId) {
+    const noteRow = document.getElementById(`note-${ticketId}`);
+    if (noteRow) {
+        if (noteRow.classList.contains("hidden")) {
+            noteRow.classList.remove("hidden");
+        } else {
+            noteRow.classList.add("hidden");
+        }
+    }
+}
+
 async function renderAdminDashboard() {
     const container = document.getElementById("mainContent");
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading tickets...</div>`;
     
     try {
-        const tickets = await getAllTickets();
+        let tickets = await getAllTickets();
         
         const activeTickets = tickets.filter(t => t.status !== "Resolved");
         const urgentCount = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
@@ -827,22 +848,13 @@ async function renderAdminDashboard() {
                 <h4>🚨 Active Tickets</h4>
                 <table class="data-table">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Submitter</th>
-                            <th>Description</th>
-                            <th>Location</th>
-                            <th>Category</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
+                        <tr><th>ID</th><th>Submitter</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                         ${activeTickets.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}${" "} 
+                                <td>${t.submitterID || 'N/A'}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
@@ -852,7 +864,7 @@ async function renderAdminDashboard() {
                                     ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
                                     ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
                                     ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
-                                  </td>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -901,21 +913,13 @@ async function renderAllTicketsAdmin() {
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Submitter ID</th>
-                            <th>Description</th>
-                            <th>Location</th>
-                            <th>Category</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                        </tr>
+                        <tr><th>ID</th><th>Submitter ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                         ${tickets.map(t => `
-                            <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})" class="ticket-row-hover"` : ''}>
+                            <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}${" "}</td>
+                                <td>${t.submitterID || 'N/A'}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
@@ -924,10 +928,10 @@ async function renderAllTicketsAdmin() {
                             </tr>
                             <tr id="note-${t.ticketID}" class="hidden">
                                 <td colspan="7" style="padding: 0; border: none;">
-                                <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
-                                <strong>IT Resolution Note:</strong><br> 
-                                ${t.resolutionNote || 'No resolution note provided for this ticket.'}
-                                </div>
+                                    <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                                        <strong>IT Resolution Note:</strong><br> 
+                                        ${t.resolutionNote || 'No resolution note provided for this ticket.'}
+                                    </div>
                                 </td>
                             </tr>
                         `).join('')}
@@ -957,22 +961,13 @@ async function renderPriorityQueue() {
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Submitter ID</th>
-                            <th>Description</th>
-                            <th>Location</th>
-                            <th>Category</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
+                        <tr><th>ID</th><th>Submitter ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Action</th></tr>
                     </thead>
                     <tbody>
                         ${sorted.map(t => `
                             <tr>
                                 <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}${" "} 
+                                <td>${t.submitterID || 'N/A'}</td>
                                 <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
                                 <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
                                 <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
