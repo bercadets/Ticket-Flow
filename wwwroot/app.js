@@ -553,30 +553,56 @@ async function renderStudentDashboard() {
         const open = allMyTickets.filter(t => t.status === "Open").length;
         const progress = allMyTickets.filter(t => t.status === "In Progress").length;
         const resolved = allMyTickets.filter(t => t.status === "Resolved").length;
-        const activeOnly = allMyTickets.filter(t => t.status !== "Resolved");
         
-        const isMobile = window.innerWidth <= 768;
+        let filteredTickets = [...allMyTickets];
         
-        if (isMobile) {
-            container.innerHTML = `
-                <div style="margin-bottom: 2rem;">
-                    <h2 style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); -webkit-background-clip: text; background-clip: text; color: transparent;">Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
-                    <p style="color: var(--text-muted);">Track and manage your IT requests</p>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
-                    <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
-                    <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
-                    <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${allMyTickets.length}</div></div>
-                </div>
-                <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
-                <h3 style="margin: 1rem 0 0.75rem 0;">Active Tickets</h3>
-                ${activeOnly.length === 0 ? `
+        function applyFilters() {
+    const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
+    const statusFilter = document.getElementById("statusFilter")?.value || "all";
+    const categoryFilter = document.getElementById("categoryFilter")?.value || "all";
+    const priorityFilter = document.getElementById("priorityFilter")?.value || "all";
+    
+    filteredTickets = allMyTickets.filter(ticket => {
+        const matchesSearch = !searchTerm || 
+            ticket.description?.toLowerCase().includes(searchTerm) ||
+            ticket.ticketID?.toString().includes(searchTerm);
+        const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+        const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
+        const matchesPriority = priorityFilter === "all" || ticket.priorityLevel === priorityFilter;
+        return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+    });
+    
+    const activeFilteredCount = filteredTickets.filter(t => t.status !== "Resolved").length;
+    const totalActive = allMyTickets.filter(t => t.status !== "Resolved").length;
+    document.getElementById("filterStats").innerHTML = `Showing ${activeFilteredCount} of ${totalActive} active tickets`;
+    renderTicketsTable();
+}
+        
+        function clearFilters() {
+            document.getElementById("searchInput").value = "";
+            document.getElementById("statusFilter").value = "all";
+            document.getElementById("categoryFilter").value = "all";
+            document.getElementById("priorityFilter").value = "all";
+            applyFilters();
+        }
+        
+        function renderTicketsTable() {
+            const activeOnly = filteredTickets.filter(t => t.status !== "Resolved");
+            const tableContainer = document.getElementById("ticketsTableContainer");
+            const isMobile = window.innerWidth <= 768;
+            
+            if (activeOnly.length === 0) {
+                tableContainer.innerHTML = `
                     <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;">
-                        <p style="color: var(--text-muted);">No active tickets 🎉</p>
-                        <p style="font-size: 13px; color: var(--text-light);">Your resolved tickets can be found in "My Tickets"</p>
+                        <p style="color: var(--text-muted);">No tickets match your filters 🎉</p>
+                        <p style="font-size: 13px; color: var(--text-light);">Try changing your search criteria</p>
                     </div>
-                ` : `
+                `;
+                return;
+            }
+            
+            if (isMobile) {
+                tableContainer.innerHTML = `
                     <div class="mobile-tickets">
                         ${activeOnly.map(t => `
                             <div class="mobile-ticket-card" data-ticket-id="${t.ticketID}">
@@ -600,31 +626,16 @@ async function renderStudentDashboard() {
                             </div>
                         `).join('')}
                     </div>
-                `}
-            `;
-        } else {
-            container.innerHTML = `
-                <div style="margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
-                    <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
-                </div>
-                <div class="stat-grid">
-                    <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
-                    <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
-                    <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
-                    <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${allMyTickets.length}</div></div>
-                </div>
-                <div class="filter-bar"><button class="btn-primary" id="newTicketBtn">+ New Ticket</button></div>
-                <h3 style="margin: 1rem 0 0.75rem 0;">Active Tickets</h3>
-                ${activeOnly.length === 0 ? `
-                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;">
-                        <p style="color: var(--text-muted);">No active tickets 🎉</p>
-                        <p style="font-size: 13px; color: var(--text-light);">Your resolved tickets can be found in "My Tickets"</p>
-                    </div>
-                ` : `
+                `;
+            } else {
+                tableContainer.innerHTML = `
                     <div class="table-responsive">
                         <table class="data-table">
-                            <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 ${activeOnly.map(t => `
                                     <tr>
@@ -640,11 +651,63 @@ async function renderStudentDashboard() {
                             </tbody>
                         </table>
                     </div>
-                `}
-            `;
+                `;
+            }
         }
         
+        const isMobile = window.innerWidth <= 768;
+        
+        container.innerHTML = `
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
+                <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
+                <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
+                <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" style="color:#2C8E5A;">${resolved}</div></div>
+                <div class="stat-card"><div class="stat-title">Total Tickets</div><div class="stat-number">${allMyTickets.length}</div></div>
+            </div>
+            
+            <div class="filter-bar">
+                <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search by ID or description..." autocomplete="off">
+                <select id="statusFilter" class="form-control">
+                    <option value="all">All Status</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+                <select id="categoryFilter" class="form-control">
+                    <option value="all">All Categories</option>
+                    <option value="Hardware">🖥️ Hardware</option>
+                    <option value="Software">💿 Software</option>
+                    <option value="Network">🌐 Network</option>
+                </select>
+                <select id="priorityFilter" class="form-control">
+                    <option value="all">All Priorities</option>
+                    <option value="Urgent">🔴 Urgent</option>
+                    <option value="High Priority">🟠 High Priority</option>
+                    <option value="Standard">🟡 Standard</option>
+                </select>
+                <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
+                <span id="filterStats" class="filter-stats">Showing ${allMyTickets.filter(t => t.status !== "Resolved").length} active tickets</span>
+            </div>
+            
+            <div class="filter-bar" style="margin-top: -0.5rem;">
+                <button class="btn-primary" id="newTicketBtn">+ New Ticket</button>
+            </div>
+            
+            <div id="ticketsTableContainer"></div>
+        `;
+        
+        renderTicketsTable();
+        
         document.getElementById("newTicketBtn")?.addEventListener("click", () => renderSubmitForm());
+        document.getElementById("searchInput")?.addEventListener("input", applyFilters);
+        document.getElementById("statusFilter")?.addEventListener("change", applyFilters);
+        document.getElementById("categoryFilter")?.addEventListener("change", applyFilters);
+        document.getElementById("priorityFilter")?.addEventListener("change", applyFilters);
+        document.getElementById("clearFiltersBtn")?.addEventListener("click", clearFilters);
         
     } catch (error) {
         container.innerHTML = `<div style="color:red; padding:2rem;">❌ Error loading tickets: ${error.message}</div>`;
@@ -824,78 +887,156 @@ async function renderAdminDashboard() {
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading tickets...</div>`;
     
     try {
-        let tickets = await getAllTickets();
+        let allTickets = await getAllTickets();
+        let filteredTickets = [...allTickets];
         
-        const activeTickets = tickets.filter(t => t.status !== "Resolved");
-        const urgentCount = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
-        const inProgressCount = activeTickets.filter(t => t.status === "In Progress").length;
-        const openCount = activeTickets.filter(t => t.status === "Open").length;
-
-        activeTickets.sort((a, b) => {
-            const priority = { 'Urgent': 3, 'High Priority': 2, 'Issue': 1, 'Standard': 1, 'Low': 0 };
-            return (priority[b.priorityLevel] || 0) - (priority[a.priorityLevel] || 0);
-        });
+        function applyAdminFilters() {
+            const searchTerm = document.getElementById("adminSearchInput")?.value.toLowerCase() || "";
+            const statusFilter = document.getElementById("adminStatusFilter")?.value || "all";
+            const categoryFilter = document.getElementById("adminCategoryFilter")?.value || "all";
+            const priorityFilter = document.getElementById("adminPriorityFilter")?.value || "all";
+            
+            filteredTickets = allTickets.filter(ticket => {
+                const matchesSearch = !searchTerm || 
+                    ticket.description?.toLowerCase().includes(searchTerm) ||
+                    ticket.ticketID?.toString().includes(searchTerm);
+                const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+                const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
+                const matchesPriority = priorityFilter === "all" || ticket.priorityLevel === priorityFilter;
+                return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+            });
+            
+            document.getElementById("adminFilterStats").innerHTML = `Showing ${filteredTickets.length} of ${allTickets.length} tickets`;
+            renderAdminTable();
+        }
+        
+        function clearAdminFilters() {
+            document.getElementById("adminSearchInput").value = "";
+            document.getElementById("adminStatusFilter").value = "all";
+            document.getElementById("adminCategoryFilter").value = "all";
+            document.getElementById("adminPriorityFilter").value = "all";
+            applyAdminFilters();
+        }
+        
+        function renderAdminTable() {
+            const activeTickets = filteredTickets.filter(t => t.status !== "Resolved");
+            const urgentCount = activeTickets.filter(t => t.priorityLevel === "Urgent").length;
+            const inProgressCount = activeTickets.filter(t => t.status === "In Progress").length;
+            const openCount = activeTickets.filter(t => t.status === "Open").length;
+            
+            activeTickets.sort((a, b) => {
+                const priority = { 'Urgent': 3, 'High Priority': 2, 'Issue': 1, 'Standard': 1, 'Low': 0 };
+                return (priority[b.priorityLevel] || 0) - (priority[a.priorityLevel] || 0);
+            });
+            
+            document.getElementById("adminStatsContainer").innerHTML = `
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-title">Active Tickets</div><div class="stat-number">${activeTickets.length}</div></div>
+                    <div class="stat-card"><div class="stat-title">Urgent Tickets</div><div class="stat-number" style="color:#E33E3E;">${urgentCount}</div></div>
+                    <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${openCount}</div></div>
+                    <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${inProgressCount}</div></div>
+                </div>
+            `;
+            
+            const tableContainer = document.getElementById("adminTableContainer");
+            if (activeTickets.length === 0) {
+                tableContainer.innerHTML = `<div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;"><p style="color: var(--text-muted);">No active tickets match your filters</p></div>`;
+                return;
+            }
+            
+            tableContainer.innerHTML = `
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>ID</th><th>Submitter</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            ${activeTickets.map(t => `
+                                <tr>
+                                    <td>#${t.ticketID}</td>
+                                    <td>${t.submitterID || 'N/A'}</td>
+                                    <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                    <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                    <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                    <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                    <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                    <td>
+                                        ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
+                                        ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
+                                        ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.querySelectorAll(".startBtn").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    const ticketId = btn.getAttribute("data-id");
+                    await updateTicketStatus(ticketId, "In Progress");
+                    showToast(`Ticket #${ticketId} marked as In Progress`, "success");
+                    renderAdminDashboard();
+                });
+            });
+            
+            document.querySelectorAll(".resolveBtn").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    const ticketId = btn.getAttribute("data-id");
+                    const note = prompt("Enter resolution notes:");
+                    if (note) {
+                        try {
+                            await resolveTicket(ticketId, currentUser.id, note);
+                            showToast(`Ticket #${ticketId} resolved!`, "success");
+                            renderAdminDashboard();
+                        } catch (error) {
+                            showToast(error.message, "error");
+                        }
+                    }
+                });
+            });
+        }
         
         container.innerHTML = `
             <div><h2>🛡️ Admin Overview</h2><p style="margin-bottom: 1.5rem;">AI-powered ticketing & smart priority queue</p></div>
-            <div class="stat-grid">
-                <div class="stat-card"><div class="stat-title">Active Tickets</div><div class="stat-number">${activeTickets.length}</div></div>
-                <div class="stat-card"><div class="stat-title">Urgent Tickets</div><div class="stat-number" style="color:#E33E3E;">${urgentCount}</div></div>
-                <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${openCount}</div></div>
-                <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${inProgressCount}</div></div>
+            <div id="adminStatsContainer"></div>
+            
+            <div class="filter-bar">
+                <input type="text" id="adminSearchInput" class="form-control" placeholder="🔍 Search by ID or description..." autocomplete="off">
+                <select id="adminStatusFilter" class="form-control">
+                    <option value="all">All Status</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+                <select id="adminCategoryFilter" class="form-control">
+                    <option value="all">All Categories</option>
+                    <option value="Hardware">🖥️ Hardware</option>
+                    <option value="Software">💿 Software</option>
+                    <option value="Network">🌐 Network</option>
+                </select>
+                <select id="adminPriorityFilter" class="form-control">
+                    <option value="all">All Priorities</option>
+                    <option value="Urgent">🔴 Urgent</option>
+                    <option value="High Priority">🟠 High Priority</option>
+                    <option value="Standard">🟡 Standard</option>
+                </select>
+                <button id="adminClearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
+                <span id="adminFilterStats" class="filter-stats">Showing ${allTickets.length} of ${allTickets.length} tickets</span>
             </div>
-            <div class="table-responsive">
-                <h4>🚨 Active Tickets</h4>
-                <table class="data-table">
-                    <thead>
-                        <tr><th>ID</th><th>Submitter</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody>
-                        ${activeTickets.map(t => `
-                            <tr>
-                                <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}</td>
-                                <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
-                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
-                                <td>
-                                    ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
-                                    ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
-                                    ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
+            
+            <h4 style="margin: 1rem 0 0.75rem 0;">🚨 Active Tickets</h4>
+            <div id="adminTableContainer"></div>
         `;
         
-        document.querySelectorAll(".startBtn").forEach(btn => {
-            btn.addEventListener("click", async (e) => {
-                const ticketId = btn.getAttribute("data-id");
-                await updateTicketStatus(ticketId, "In Progress");
-                showToast(`Ticket #${ticketId} marked as In Progress`, "success");
-                renderAdminDashboard();
-            });
-        });
+        renderAdminTable();
         
-        document.querySelectorAll(".resolveBtn").forEach(btn => {
-            btn.addEventListener("click", async (e) => {
-                const ticketId = btn.getAttribute("data-id");
-                const note = prompt("Enter resolution notes:");
-                if (note) {
-                    try {
-                        await resolveTicket(ticketId, currentUser.id, note);
-                        showToast(`Ticket #${ticketId} resolved!`, "success");
-                        renderAdminDashboard();
-                    } catch (error) {
-                        showToast(error.message, "error");
-                    }
-                }
-            });
-        });
+        document.getElementById("adminSearchInput")?.addEventListener("input", applyAdminFilters);
+        document.getElementById("adminStatusFilter")?.addEventListener("change", applyAdminFilters);
+        document.getElementById("adminCategoryFilter")?.addEventListener("change", applyAdminFilters);
+        document.getElementById("adminPriorityFilter")?.addEventListener("change", applyAdminFilters);
+        document.getElementById("adminClearFiltersBtn")?.addEventListener("click", clearAdminFilters);
         
     } catch (error) {
         container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
