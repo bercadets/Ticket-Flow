@@ -557,26 +557,26 @@ async function renderStudentDashboard() {
         let filteredTickets = [...allMyTickets];
         
         function applyFilters() {
-    const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
-    const statusFilter = document.getElementById("statusFilter")?.value || "all";
-    const categoryFilter = document.getElementById("categoryFilter")?.value || "all";
-    const priorityFilter = document.getElementById("priorityFilter")?.value || "all";
-    
-    filteredTickets = allMyTickets.filter(ticket => {
-        const matchesSearch = !searchTerm || 
-            ticket.description?.toLowerCase().includes(searchTerm) ||
-            ticket.ticketID?.toString().includes(searchTerm);
-        const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
-        const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
-        const matchesPriority = priorityFilter === "all" || ticket.priorityLevel === priorityFilter;
-        return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
-    });
-    
-    const activeFilteredCount = filteredTickets.filter(t => t.status !== "Resolved").length;
-    const totalActive = allMyTickets.filter(t => t.status !== "Resolved").length;
-    document.getElementById("filterStats").innerHTML = `Showing ${activeFilteredCount} of ${totalActive} active tickets`;
-    renderTicketsTable();
-}
+            const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
+            const statusFilter = document.getElementById("statusFilter")?.value || "all";
+            const categoryFilter = document.getElementById("categoryFilter")?.value || "all";
+            const priorityFilter = document.getElementById("priorityFilter")?.value || "all";
+            
+            filteredTickets = allMyTickets.filter(ticket => {
+                const matchesSearch = !searchTerm || 
+                    ticket.description?.toLowerCase().includes(searchTerm) ||
+                    ticket.ticketID?.toString().includes(searchTerm);
+                const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+                const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
+                const matchesPriority = priorityFilter === "all" || ticket.priorityLevel === priorityFilter;
+                return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+            });
+            
+            const activeFilteredCount = filteredTickets.filter(t => t.status !== "Resolved").length;
+            const totalActive = allMyTickets.filter(t => t.status !== "Resolved").length;
+            document.getElementById("filterStats").innerHTML = `Showing ${activeFilteredCount} of ${totalActive} active tickets`;
+            renderTicketsTable();
+        }
         
         function clearFilters() {
             document.getElementById("searchInput").value = "";
@@ -594,7 +594,7 @@ async function renderStudentDashboard() {
             if (activeOnly.length === 0) {
                 tableContainer.innerHTML = `
                     <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;">
-                        <p style="color: var(--text-muted);">No tickets match your filters 🎉</p>
+                        <p style="color: var(--text-muted);">No active tickets match your filters 🎉</p>
                         <p style="font-size: 13px; color: var(--text-light);">Try changing your search criteria</p>
                     </div>
                 `;
@@ -655,13 +655,12 @@ async function renderStudentDashboard() {
             }
         }
         
-        const isMobile = window.innerWidth <= 768;
-        
         container.innerHTML = `
             <div style="margin-bottom: 1.5rem;">
                 <h2 style="font-size: 24px; font-weight: 600;">Welcome, ${currentUser.name}</h2>
                 <p style="color: var(--text-muted);">Track and manage your IT requests (AI auto-routing enabled)</p>
             </div>
+            
             <div class="stat-grid">
                 <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" style="color:#E9A23B;">${open}</div></div>
                 <div class="stat-card"><div class="stat-title">In Progress</div><div class="stat-number" style="color:#357EDD;">${progress}</div></div>
@@ -673,9 +672,8 @@ async function renderStudentDashboard() {
                 <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search by ID or description..." autocomplete="off">
                 <select id="statusFilter" class="form-control">
                     <option value="all">All Status</option>
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
+                    <option value="Open">🟡 Open</option>
+                    <option value="In Progress">🔵 In Progress</option>
                 </select>
                 <select id="categoryFilter" class="form-control">
                     <option value="all">All Categories</option>
@@ -690,10 +688,10 @@ async function renderStudentDashboard() {
                     <option value="Standard">🟡 Standard</option>
                 </select>
                 <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
-                <span id="filterStats" class="filter-stats">Showing ${allMyTickets.filter(t => t.status !== "Resolved").length} active tickets</span>
+                <span id="filterStats" class="filter-stats">${allMyTickets.filter(t => t.status !== "Resolved").length} active tickets</span>
             </div>
             
-            <div class="filter-bar" style="margin-top: -0.5rem;">
+            <div class="filter-bar" style="margin-top: 0.5rem;">
                 <button class="btn-primary" id="newTicketBtn">+ New Ticket</button>
             </div>
             
@@ -779,93 +777,185 @@ async function renderMyTickets() {
     container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading all your tickets...</div>`;
     
     try {
-        const tickets = await getAllTickets();
+        const tickets = await getActiveTickets();
         const allMyTickets = tickets.filter(t => t.submitterID === currentUser.id);
+        
+        let filteredTickets = [...allMyTickets];
+        
+        function applyMyTicketsFilters() {
+            const searchTerm = document.getElementById("myTicketsSearch")?.value.toLowerCase() || "";
+            const statusFilter = document.getElementById("myTicketsStatus")?.value || "all";
+            const categoryFilter = document.getElementById("myTicketsCategory")?.value || "all";
+            const priorityFilter = document.getElementById("myTicketsPriority")?.value || "all";
+            
+            filteredTickets = allMyTickets.filter(ticket => {
+                const matchesSearch = !searchTerm || 
+                    ticket.description?.toLowerCase().includes(searchTerm) ||
+                    ticket.ticketID?.toString().includes(searchTerm);
+                const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+                const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
+                const matchesPriority = priorityFilter === "all" || ticket.priorityLevel === priorityFilter;
+                return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+            });
+            
+            const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
+            const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
+            document.getElementById("myTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;
+            renderMyTicketsTable();
+        }
+        
+        function clearMyTicketsFilters() {
+            document.getElementById("myTicketsSearch").value = "";
+            document.getElementById("myTicketsStatus").value = "all";
+            document.getElementById("myTicketsCategory").value = "all";
+            document.getElementById("myTicketsPriority").value = "all";
+            applyMyTicketsFilters();
+        }
+        
+        function renderMyTicketsTable() {
+            const tableContainer = document.getElementById("myTicketsTableContainer");
+            const isMobile = window.innerWidth <= 768;
+            
+            if (filteredTickets.length === 0) {
+                tableContainer.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;">
+                        <p style="color: var(--text-muted);">No tickets match your filters 🎉</p>
+                        <p style="font-size: 13px; color: var(--text-light);">Try changing your search criteria</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
+            const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
+            
+            if (isMobile) {
+                tableContainer.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <span style="background: #E3F2FD; padding: 6px 14px; border-radius: 20px; font-size: 13px;">🟡 Active: ${activeCount}</span>
+                            <span style="background: #E8F5E9; padding: 6px 14px; border-radius: 20px; font-size: 13px;">✅ Resolved: ${resolvedCount}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-tickets">
+                        ${filteredTickets.map(t => `
+                            <div class="mobile-ticket-card" data-ticket-id="${t.ticketID}">
+                                <div class="ticket-header" onclick="toggleTicketDetails(this)">
+                                    <div class="ticket-header-left">
+                                        <span class="ticket-id">#${t.ticketID}</span>
+                                        <span class="ticket-status-badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span>
+                                    </div>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="ticket-summary">
+                                    <div class="ticket-desc">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</div>
+                                </div>
+                                <div class="ticket-details" style="display: none;">
+                                    <div class="detail-row"><span class="detail-label">📍 Location</span><span class="detail-value">${t.location || 'Not specified'}</span></div>
+                                    <div class="detail-row"><span class="detail-label">🏷️ Category</span><span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span></div>
+                                    <div class="detail-row"><span class="detail-label">⚡ Priority</span><span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span></div>
+                                    <div class="detail-row"><span class="detail-label">📅 Submitted</span><span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span></div>
+                                    <div class="detail-row"><span class="detail-label">📝 Full Description</span><span class="detail-value">${t.description}</span></div>
+                                    ${t.status === 'Resolved' ? `<div class="detail-row"><span class="detail-label">✅ Resolved</span><span class="detail-value" style="color: #2C8E5A;">Ticket closed</span></div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                tableContainer.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; gap: 1rem;">
+                            <span style="background: #E3F2FD; padding: 4px 12px; border-radius: 20px; font-size: 13px;">🟡 Active: ${activeCount}</span>
+                            <span style="background: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 13px;">✅ Resolved: ${resolvedCount}</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Location</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredTickets.map(t => `
+                                    <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
+                                        <td data-label="ID"><strong>#${t.ticketID}</strong></td>
+                                        <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                        <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
+                                        <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                        <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                        <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
+                                        <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
+                                    </tr>
+                                    ${t.status === 'Resolved' ? `
+                                    <tr id="note-${t.ticketID}" class="hidden">
+                                        <td colspan="7" style="padding: 0; border: none;">
+                                            <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                                                <strong>IT Resolution Note:</strong><br> 
+                                                ${t.resolutionNote || 'No resolution note provided for this ticket.'}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    ` : ''}
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+        }
         
         const activeCount = allMyTickets.filter(t => t.status !== "Resolved").length;
         const resolvedCount = allMyTickets.filter(t => t.status === "Resolved").length;
         
-        const isMobile = window.innerWidth <= 768;
+        container.innerHTML = `
+            <div style="margin-bottom: 1.5rem;">
+                <h3>📌 My Complete Ticket History</h3>
+                <p style="color: var(--text-muted); font-size: 13px;">View and manage all your tickets including resolved ones</p>
+            </div>
+            
+            <div class="filter-bar">
+                <input type="text" id="myTicketsSearch" class="form-control" placeholder="🔍 Search by ID or description..." autocomplete="off">
+                <select id="myTicketsStatus" class="form-control">
+                    <option value="all">All Status</option>
+                    <option value="Open">🟡 Open</option>
+                    <option value="In Progress">🔵 In Progress</option>
+                    <option value="Resolved">✅ Resolved</option>
+                </select>
+                <select id="myTicketsCategory" class="form-control">
+                    <option value="all">All Categories</option>
+                    <option value="Hardware">🖥️ Hardware</option>
+                    <option value="Software">💿 Software</option>
+                    <option value="Network">🌐 Network</option>
+                </select>
+                <select id="myTicketsPriority" class="form-control">
+                    <option value="all">All Priorities</option>
+                    <option value="Urgent">🔴 Urgent</option>
+                    <option value="High Priority">🟠 High Priority</option>
+                    <option value="Standard">🟡 Standard</option>
+                </select>
+                <button id="clearMyTicketsFiltersBtn" class="clear-filters-btn">Clear Filters</button>
+                <span id="myTicketsFilterStats" class="filter-stats">Showing ${allMyTickets.length} of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)</span>
+            </div>
+            
+            <div id="myTicketsTableContainer"></div>
+        `;
         
-        if (allMyTickets.length === 0) {
-            container.innerHTML = `<h3>📌 My Tickets</h3><p>You haven't submitted any tickets yet.</p><button class="btn-primary" id="goToSubmitBtn">+ Submit a Ticket</button>`;
-            document.getElementById("goToSubmitBtn")?.addEventListener("click", () => renderSubmitForm());
-            return;
-        }
+        renderMyTicketsTable();
         
-        if (isMobile) {
-            container.innerHTML = `
-                <div style="margin-bottom: 1.5rem;">
-                    <h3>📌 My Complete Ticket History</h3>
-                    <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
-                        <span style="background: #E3F2FD; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">🟡 Active: ${activeCount}</span>
-                        <span style="background: #E8F5E9; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">✅ Resolved: ${resolvedCount}</span>
-                        <span style="background: #F3E5F5; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">📋 Total: ${allMyTickets.length}</span>
-                    </div>
-                </div>
-                <div class="mobile-tickets">
-                    ${allMyTickets.map(t => `
-                        <div class="mobile-ticket-card" data-ticket-id="${t.ticketID}">
-                            <div class="ticket-header" onclick="toggleTicketDetails(this)">
-                                <div class="ticket-header-left">
-                                    <span class="ticket-id">#${t.ticketID}</span>
-                                    <span class="ticket-status-badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span>
-                                </div>
-                                <span class="expand-icon">▼</span>
-                            </div>
-                            <div class="ticket-summary">
-                                <div class="ticket-desc">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</div>
-                            </div>
-                            <div class="ticket-details" style="display: none;">
-                                <div class="detail-row"><span class="detail-label">📍 Location</span><span class="detail-value">${t.location || 'Not specified'}</span></div>
-                                <div class="detail-row"><span class="detail-label">🏷️ Category</span><span class="detail-value"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></span></div>
-                                <div class="detail-row"><span class="detail-label">⚡ Priority</span><span class="detail-value"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></span></div>
-                                <div class="detail-row"><span class="detail-label">📅 Submitted</span><span class="detail-value">${new Date(t.createdAt).toLocaleDateString()}</span></div>
-                                <div class="detail-row"><span class="detail-label">📝 Full Description</span><span class="detail-value">${t.description}</span></div>
-                                ${t.status === 'Resolved' ? `<div class="detail-row"><span class="detail-label">✅ Resolved</span><span class="detail-value" style="color: #2C8E5A;">Ticket closed</span></div>` : ''}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div style="margin-bottom: 1.5rem;">
-                    <h3>📌 My Complete Ticket History</h3>
-                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                        <span style="background: #E3F2FD; padding: 4px 12px; border-radius: 20px; font-size: 13px;">🟡 Active: ${activeCount}</span>
-                        <span style="background: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 13px;">✅ Resolved: ${resolvedCount}</span>
-                        <span style="background: #F3E5F5; padding: 4px 12px; border-radius: 20px; font-size: 13px;">📋 Total: ${allMyTickets.length}</span>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead><tr><th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead>
-                        <tbody>
-                            ${allMyTickets.map(t => `
-                                <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
-                                    <td data-label="ID"><strong>#${t.ticketID}</strong></td>
-                                    <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
-                                    <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
-                                    <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                    <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                    <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
-                                    <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
-                                </tr>
-                                <tr id="note-${t.ticketID}" class="hidden">
-                                    <td colspan="7" style="padding: 0; border: none;">
-                                        <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
-                                            <strong>IT Resolution Note:</strong><br> 
-                                            ${t.resolutionNote || 'No resolution note provided for this ticket.'}
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
+        document.getElementById("myTicketsSearch")?.addEventListener("input", applyMyTicketsFilters);
+        document.getElementById("myTicketsStatus")?.addEventListener("change", applyMyTicketsFilters);
+        document.getElementById("myTicketsCategory")?.addEventListener("change", applyMyTicketsFilters);
+        document.getElementById("myTicketsPriority")?.addEventListener("change", applyMyTicketsFilters);
+        document.getElementById("clearMyTicketsFiltersBtn")?.addEventListener("click", clearMyTicketsFilters);
+        
     } catch (error) {
         container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
     }
@@ -1008,7 +1098,6 @@ async function renderAdminDashboard() {
                     <option value="all">All Status</option>
                     <option value="Open">Open</option>
                     <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
                 </select>
                 <select id="adminCategoryFilter" class="form-control">
                     <option value="all">All Categories</option>
@@ -1045,41 +1134,149 @@ async function renderAdminDashboard() {
 
 async function renderAllTicketsAdmin() {
     const container = document.getElementById("mainContent");
+    container.innerHTML = `<div style="text-align:center; padding:2rem;">📋 Loading tickets...</div>`;
     
     try {
-        const tickets = await getAllTickets();
+        let allTickets = await getAllTickets();
+        let filteredTickets = [...allTickets];
+        
+        function applyAllTicketsFilters() {
+            const searchTerm = document.getElementById("allTicketsSearch")?.value.toLowerCase() || "";
+            const statusFilter = document.getElementById("allTicketsStatus")?.value || "all";
+            const categoryFilter = document.getElementById("allTicketsCategory")?.value || "all";
+            const priorityFilter = document.getElementById("allTicketsPriority")?.value || "all";
+            
+            filteredTickets = allTickets.filter(ticket => {
+                const matchesSearch = !searchTerm || 
+                    ticket.description?.toLowerCase().includes(searchTerm) ||
+                    ticket.ticketID?.toString().includes(searchTerm);
+                const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+                const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
+                const matchesPriority = priorityFilter === "all" || ticket.priorityLevel === priorityFilter;
+                return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+            });
+            
+            const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
+            const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
+            document.getElementById("allTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} of ${allTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;
+            renderAllTicketsTable();
+        }
+        
+        function clearAllTicketsFilters() {
+            document.getElementById("allTicketsSearch").value = "";
+            document.getElementById("allTicketsStatus").value = "all";
+            document.getElementById("allTicketsCategory").value = "all";
+            document.getElementById("allTicketsPriority").value = "all";
+            applyAllTicketsFilters();
+        }
+        
+        function renderAllTicketsTable() {
+            const tableContainer = document.getElementById("allTicketsTableContainer");
+            
+            if (filteredTickets.length === 0) {
+                tableContainer.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; background: white; border-radius: 20px;">
+                        <p style="color: var(--text-muted);">No tickets match your filters 🎉</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
+            const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
+            
+            tableContainer.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 1rem;">
+                        <span style="background: #E3F2FD; padding: 4px 12px; border-radius: 20px; font-size: 13px;">🟡 Active: ${activeCount}</span>
+                        <span style="background: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 13px;">✅ Resolved: ${resolvedCount}</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Submitter ID</th>
+                                <th>Description</th>
+                                <th>Location</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredTickets.map(t => `
+                                <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
+                                    <td data-label="ID"><strong>#${t.ticketID}</strong></td>
+                                    <td data-label="Submitter ID">${t.submitterID || 'N/A'}${" "} Non
+                                    <td data-label="Description">${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                    <td data-label="Location"><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                    <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                    <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                    <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
+                                </tr>
+                                ${t.status === 'Resolved' ? `
+                                <tr id="note-${t.ticketID}" class="hidden">
+                                    <td colspan="7" style="padding: 0; border: none;">
+                                        <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                                            <strong>IT Resolution Note:</strong><br> 
+                                            ${t.resolutionNote || 'No resolution note provided for this ticket.'}
+                                        </div>
+                                    </td>
+                                </tr>
+                                ` : ''}
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        const activeCount = allTickets.filter(t => t.status !== "Resolved").length;
+        const resolvedCount = allTickets.filter(t => t.status === "Resolved").length;
         
         container.innerHTML = `
-            <h3>📋 All Tickets (Admin View)</h3>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>ID</th><th>Submitter ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        ${tickets.map(t => `
-                            <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
-                                <td>#${t.ticketID}</td>
-                                <td>${t.submitterID || 'N/A'}</td>
-                                <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
-                                <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                <td><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
-                            </tr>
-                            <tr id="note-${t.ticketID}" class="hidden">
-                                <td colspan="7" style="padding: 0; border: none;">
-                                    <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
-                                        <strong>IT Resolution Note:</strong><br> 
-                                        ${t.resolutionNote || 'No resolution note provided for this ticket.'}
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+            <div style="margin-bottom: 1.5rem;">
+                <h3>📋 All Tickets (Admin View)</h3>
+                <p style="color: var(--text-muted); font-size: 13px;">View and filter all tickets in the system</p>
             </div>
+            
+            <div class="filter-bar">
+                <input type="text" id="allTicketsSearch" class="form-control" placeholder="🔍 Search by ID or description..." autocomplete="off">
+                <select id="allTicketsStatus" class="form-control">
+                    <option value="all">All Status</option>
+                    <option value="Open">🟡 Open</option>
+                    <option value="In Progress">🔵 In Progress</option>
+                    <option value="Resolved">✅ Resolved</option>
+                </select>
+                <select id="allTicketsCategory" class="form-control">
+                    <option value="all">All Categories</option>
+                    <option value="Hardware">🖥️ Hardware</option>
+                    <option value="Software">💿 Software</option>
+                    <option value="Network">🌐 Network</option>
+                </select>
+                <select id="allTicketsPriority" class="form-control">
+                    <option value="all">All Priorities</option>
+                    <option value="Urgent">🔴 Urgent</option>
+                    <option value="High Priority">🟠 High Priority</option>
+                    <option value="Standard">🟡 Standard</option>
+                </select>
+                <button id="clearAllTicketsFiltersBtn" class="clear-filters-btn">Clear Filters</button>
+                <span id="allTicketsFilterStats" class="filter-stats">Showing ${allTickets.length} of ${allTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)</span>
+            </div>
+            
+            <div id="allTicketsTableContainer"></div>
         `;
+        
+        renderAllTicketsTable();
+        
+        document.getElementById("allTicketsSearch")?.addEventListener("input", applyAllTicketsFilters);
+        document.getElementById("allTicketsStatus")?.addEventListener("change", applyAllTicketsFilters);
+        document.getElementById("allTicketsCategory")?.addEventListener("change", applyAllTicketsFilters);
+        document.getElementById("allTicketsPriority")?.addEventListener("change", applyAllTicketsFilters);
+        document.getElementById("clearAllTicketsFiltersBtn")?.addEventListener("click", clearAllTicketsFilters);
+        
     } catch (error) {
         container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
     }
