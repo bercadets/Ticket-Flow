@@ -1,7 +1,7 @@
 using TicketFlowAPI.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
 builder.Configuration.AddUserSecrets<Program>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -17,11 +17,10 @@ app.UseStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-// Database initialization
+
 using (var scope = app.Services.CreateScope())
 {
     var dbHelper = scope.ServiceProvider.GetRequiredService<DatabaseHelper>();

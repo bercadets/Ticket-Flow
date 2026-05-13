@@ -10,14 +10,14 @@ namespace TicketFlowAPI.Controllers
     [Route("api/[controller]")]
     public class TicketsController : ControllerBase
     {
-        private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
-              private readonly PredictionService _predictionService;
-
-        public TicketsController(PredictionService predictionService)
-            {
-                
-                _predictionService = predictionService; 
-            }
+        
+        private readonly DatabaseHelper _dbHelper;
+        private readonly PredictionService _predictionService;
+        public TicketsController(DatabaseHelper dbHelper, PredictionService predictionService)
+        {
+            _dbHelper = dbHelper;
+            _predictionService = predictionService;
+        }
 
 
         [HttpPost("submit")]
@@ -62,7 +62,9 @@ namespace TicketFlowAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Failed: " + ex.Message });
+                System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+        
             }
         }
     
@@ -100,7 +102,9 @@ namespace TicketFlowAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Failed to fetch tickets: " + ex.Message });
+               System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+        
             }
         }
 
@@ -151,7 +155,9 @@ namespace TicketFlowAPI.Controllers
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    return StatusCode(500, new { error = "Resolution failed: " + ex.Message });
+                   System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+        
                 }
             }
         }
@@ -194,7 +200,9 @@ namespace TicketFlowAPI.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { error = "Failed to fetch admin queue: " + ex.Message });
+                System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+        
             }
         }
 
@@ -228,7 +236,9 @@ namespace TicketFlowAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Failed to update status: " + ex.Message });
+               System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+        
             }
         }
                 
