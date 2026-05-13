@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TicketFlowAPI.Models;
 using MySql.Data.MySqlClient;
 using TicketFlowAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using System;
 
 namespace TicketFlowAPI.Controllers
@@ -19,64 +20,69 @@ namespace TicketFlowAPI.Controllers
             _predictionService = predictionService;
         }
 
-
-[HttpPost("submit")]
-public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTicket)
-{
-    try
-    {
-        if (!ModelState.IsValid)
+        [Authorize(Roles = "Student")]
+        [HttpPost("submit")]
+        public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTicket)
         {
-            return BadRequest(ModelState);
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
+                
+                if (prediction == null)
+                {
+                    return StatusCode(400, new { error = "Issue is unrelated to IT support. Please describe a Hardware, Network, or Software problem." });
+                }
+
+                string category = prediction.Value.Category;
+                string priorityLevel = prediction.Value.Label; 
+                int priorityWeight = prediction.Value.Weight;  
+                
+                string sql = @"
+                    INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight, Status) 
+                    VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight, 'Open')";
+                
+                var parameters = new Dictionary<string, object>
+                {
+                    { "@SubmitterID", incomingTicket.SubmitterID },
+                    { "@Description", incomingTicket.Description },
+                    { "@Location", incomingTicket.Location },
+                    { "@Category", category },
+                    { "@PriorityLevel", priorityLevel },
+                    { "@PriorityWeight", priorityWeight }
+                };
+                
+                _dbHelper.ExecuteModifyQuery(sql, parameters);
+                
+                return Ok(new { 
+                    message = "Ticket submitted! AI routed it to: " + category,
+                    category = category,
+                    priority = priorityLevel
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+            }
         }
-
-        var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
         
-        if (prediction == null)
-        {
-            return StatusCode(400, new { error = "Issue is unrelated to IT support. Please describe a Hardware, Network, or Software problem." });
-        }
-
-        string category = prediction.Value.Category;
-        string priorityLevel = prediction.Value.Label; 
-        int priorityWeight = prediction.Value.Weight;  
-        
-        string sql = @"
-            INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight, Status) 
-            VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight, 'Open')";
-        
-        var parameters = new Dictionary<string, object>
-        {
-            { "@SubmitterID", incomingTicket.SubmitterID },
-            { "@Description", incomingTicket.Description },
-            { "@Location", incomingTicket.Location },
-            { "@Category", category },
-            { "@PriorityLevel", priorityLevel },
-            { "@PriorityWeight", priorityWeight }
-        };
-        
-        _dbHelper.ExecuteModifyQuery(sql, parameters);
-        
-        return Ok(new { 
-            message = "Ticket submitted! AI routed it to: " + category,
-            category = category,
-            priority = priorityLevel
-        });
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
-        return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
-    }
-}
-    
+        [Authorize(Roles = "Admin,Student")]
         [HttpGet("active")]
         public IActionResult GetActiveTickets()
         {
             try
             {
                 
-                string sql = "SELECT * FROM ActiveTickets ORDER BY PriorityWeight ASC, CreatedAt ASC";
+                string sql = @"
+                    SELECT t.*, n.NoteText
+                    FROM ActiveTickets t
+                    LEFT JOIN ResolutionNotes n ON t.TicketID = n.TicketID
+                    ORDER BY t.PriorityWeight ASC, t.CreatedAt ASC";
 
    
                 var dataTable = _dbHelper.ExecuteSelectQuery(sql);
@@ -96,7 +102,8 @@ public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTi
                         PriorityLevel = row["PriorityLevel"],
                         PriorityWeight = row["PriorityWeight"],
                         Status = row["Status"],
-                        CreatedAt = row["CreatedAt"]
+                        CreatedAt = row["CreatedAt"],
+                        ResolutionNote = row["NoteText"]
                     });
                 }
 
@@ -109,8 +116,10 @@ public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTi
         
             }
         }
-
+        
+        
         [HttpPost("resolve")]
+        [Authorize(Roles = "Admin")]
         public IActionResult ResolveTicket(int ticketId, int adminId, string note)
         {
             using (var connection = _dbHelper.GetConnection())
@@ -164,6 +173,8 @@ public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTi
             }
         }
 
+
+        [Authorize(Roles = "Admin,Student")]
         [HttpGet("all")]
         public IActionResult GetAllTickets()
         {
@@ -208,6 +219,8 @@ public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTi
             }
         }
 
+
+        [Authorize(Roles = "Admin")]
         [HttpPut("update-status")]
         public IActionResult UpdateStatus(int ticketId, string status)
         {

@@ -22,9 +22,18 @@ function toggleTicketDetails(element) {
 }
 
 async function apiCall(endpoint, method = 'GET', body = null) {
+
+    const headers = { 'Content-Type': 'application/json' };
+
+    const token = currentUser?.token;
+
+    if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+    }
+
     const options = {
         method: method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: headers
     };
     if (body) options.body = JSON.stringify(body);
     
@@ -42,7 +51,8 @@ async function login(username, password) {
         name: `${result.fName} ${result.lName}`,
         role: result.role.toLowerCase(),
         firstName: result.fName,
-        lastName: result.lName
+        lastName: result.lName,
+        token: result.token || result.Token
     };
 }
 
@@ -170,7 +180,8 @@ function renderLoginScreen(root) {
                     name: result.name,
                     role: result.role,
                     initials: result.firstName.charAt(0) + (result.lastName?.charAt(0) || ''),
-                    username: username
+                    username: username,
+                    token: result.token || result.Token
                 };
                 showRegister = false;
                 renderApp();

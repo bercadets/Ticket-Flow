@@ -58,7 +58,7 @@ namespace TicketFlowAPI.Services
                 }
             }
             catch
-            {
+            { 
                 Console.WriteLine("[ERROR] AI is busy pls try again");
                 return null;
             }

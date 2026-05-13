@@ -5,12 +5,12 @@ namespace TicketFlowAPI.Models
     public class PasswordReset
     {
         [Required, MaxLength(100)]
-        public string FName { get; set; }
+        public string FName { get; set; } = string.Empty;
         [Required, MaxLength(100)]
-        public string LName { get; set; }
+        public string LName { get; set; } = string.Empty;
         [Required, MaxLength(50)]
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
         [Required, MaxLength(20)]
-        public string NewPassword { get; set; }
+        public string NewPassword { get; set; } = string.Empty;
     }
 }
