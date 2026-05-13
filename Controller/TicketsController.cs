@@ -25,6 +25,10 @@ namespace TicketFlowAPI.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
                 var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
                 

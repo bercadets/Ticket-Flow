@@ -29,10 +29,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     if (body) options.body = JSON.stringify(body);
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-     const contentType = response.headers.get('content-type') || '';
-    const data = contentType.includes('application/json')
-        ? await response.json()
-        : { error: await response.text() };
+    const data = await response.json();
     if (!response.ok) throw new Error(data.error || data.message || 'API call failed');
     return data;
 }
