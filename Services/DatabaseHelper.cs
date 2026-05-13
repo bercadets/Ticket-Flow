@@ -68,10 +68,10 @@ namespace TicketFlowAPI.Services
             // 1. Create the Users Table
             string createUsersTable = @"
                 CREATE TABLE IF NOT EXISTS `Users` (
-                `UserID` int(11) NOT NULL,
+                `UserID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `FName` varchar(100) NOT NULL,
                 `LName` varchar(100) NOT NULL,
-                `Username` varchar(50) NOT NULL,
+                `Username` varchar(50) NOT NULL UNIQUE,
                 `PasswordHash` varchar(255) NOT NULL,
                 `Role` varchar(20) NOT NULL CHECK (`Role` in ('Student','Admin'))
                 );";
@@ -79,7 +79,7 @@ namespace TicketFlowAPI.Services
             // 2. Create the Active Tickets Table (With the Foreign Key!)
             string createTicketsTable = @"
                 CREATE TABLE IF NOT EXISTS `ActiveTickets` (
-                `TicketID` int(11) NOT NULL,
+                `TicketID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                  `SubmitterID` int(11) NOT NULL,
                     `Description` text NOT NULL,
                     `Location` varchar(255) DEFAULT NULL,
@@ -87,12 +87,14 @@ namespace TicketFlowAPI.Services
                     `PriorityLevel` varchar(20) NOT NULL,
                     `PriorityWeight` int(11) NOT NULL,
                     `Status` varchar(20) DEFAULT 'Open' CHECK (`Status` in ('Open','In Progress','Resolved')),
-                    `CreatedAt` datetime DEFAULT current_timestamp()
+                    `CreatedAt` datetime DEFAULT current_timestamp(),
+                    FOREIGN KEY (`SubmitterID`) REFERENCES `Users`(`UserID`) ON DELETE CASCADE
                 );";
 
 
             string createArchiveTable = @"
                 CREATE TABLE IF NOT EXISTS `TicketArchive` (
+                `ArchiveID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `TicketID` int(11) NOT NULL,
                 `SubmitterID` int(11) NOT NULL,
                 `Description` text NOT NULL,
@@ -100,16 +102,19 @@ namespace TicketFlowAPI.Services
                 `Category` varchar(50) NOT NULL,
                 `FinalPriority` varchar(20) NOT NULL,
                 `CreatedAt` datetime NOT NULL,
-                `ResolvedAt` datetime DEFAULT current_timestamp()
+                `ResolvedAt` datetime DEFAULT current_timestamp(),
+                FOREIGN KEY (`SubmitterID`) REFERENCES `Users`(`UserID`) ON DELETE CASCADE
                 );";
 
                 string createNotesTable = @"
                 CREATE TABLE IF NOT EXISTS `resolutionnotes` (
-                    `NoteID` int(11) NOT NULL,
+                    `NoteID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     `TicketID` int(11) NOT NULL,
                     `AdminID` int(11) NOT NULL,
                     `NoteText` text NOT NULL,
-                    `Timestamp` datetime DEFAULT current_timestamp()
+                    `Timestamp` datetime DEFAULT current_timestamp(),
+                    FOREIGN KEY (`TicketID`) REFERENCES `ActiveTickets`(`TicketID`) ON DELETE CASCADE,
+                    FOREIGN KEY (`AdminID`) REFERENCES `Users`(`UserID`) ON DELETE CASCADE
                 );";
 
             using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(createUsersTable, connection))
