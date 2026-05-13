@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TicketFlowAPI.Models
 {
     public class ActiveTicket
-    {
+    {.
         public int TicketID { get; set; }
         public int SubmitterID { get; set; }
         
