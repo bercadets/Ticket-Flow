@@ -1,6 +1,24 @@
 using TicketFlowAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var jwtKey = builder.Configuration["Jwt:Key"]!; 
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false, 
+            ValidateAudience = false,
+            ValidateLifetime = true, 
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
 
 builder.Configuration.AddUserSecrets<Program>();
 builder.Services.AddControllers();
@@ -12,14 +30,15 @@ builder.Services.AddScoped<PredictionService>();
 var app = builder.Build();
 
 
-app.UseDefaultFiles();  
-app.UseStaticFiles();  
-
+app.UseHttpsRedirection();
+app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().RequireAuthorization();
 
 
 using (var scope = app.Services.CreateScope())

@@ -6,17 +6,17 @@ namespace TicketFlowAPI.Services
     public class DatabaseHelper
     {
        
-        private readonly string connectionString;
+        private readonly string connectionString = string.Empty;
         
         public DatabaseHelper(IConfiguration configuration)
             {
-                connectionString = configuration.GetConnectionString("DefaultConnection");
+                connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
             }
         public MySqlConnection GetConnection()
         {
             return new MySqlConnection(connectionString);
         }
-        public DataTable ExecuteSelectQuery(string sql, Dictionary<string, object> parameters = null)
+        public DataTable ExecuteSelectQuery(string sql, Dictionary<string, object>? parameters = null)
             {
                 using (var connection = new MySqlConnection(connectionString))
                 {
@@ -39,7 +39,7 @@ namespace TicketFlowAPI.Services
                 }
             }
 
-        public int ExecuteModifyQuery(string query, Dictionary<string, object> parameters = null)
+        public int ExecuteModifyQuery(string query, Dictionary<string, object>? parameters = null)
         {
             using (MySqlConnection conn = GetConnection())
             {
@@ -131,7 +131,7 @@ namespace TicketFlowAPI.Services
         }
     }
 
-        public int ExecuteNonQuery(string sql, Dictionary<string, object> parameters = null)
+        public int ExecuteNonQuery(string sql, Dictionary<string, object>? parameters = null)
         {
             using (var connection = new MySqlConnection(connectionString))
             {
