@@ -20,57 +20,55 @@ namespace TicketFlowAPI.Controllers
         }
 
 
-        [HttpPost("submit")]
-        public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTicket)
+[HttpPost("submit")]
+public async Task<IActionResult> SubmitTicket([FromBody] ActiveTicket incomingTicket)
+{
+    try
+    {
+        if (!ModelState.IsValid)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
-                
-                if (prediction == null)
-                {
-                    return StatusCode(503, new { error = "AI service unavailable - check API key" });
-                }
-                
-
-                string category = prediction.Value.Category;
-                string priorityLevel = prediction.Value.Label; 
-                int priorityWeight = prediction.Value.Weight;  
-                
-                string sql = @"
-                    INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight, Status) 
-                    VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight, 'Open')";
-                
-                var parameters = new Dictionary<string, object>
-                {
-                    { "@SubmitterID", incomingTicket.SubmitterID },
-                    { "@Description", incomingTicket.Description },
-                    { "@Location", incomingTicket.Location },
-                    { "@Category", category },
-                    { "@PriorityLevel", priorityLevel },
-                    { "@PriorityWeight", priorityWeight }
-                };
-                
-                _dbHelper.ExecuteModifyQuery(sql, parameters);
-                
-                return Ok(new { 
-                    message = "Ticket submitted! AI routed it to: " + category,
-                    category = category,
-                    priority = priorityLevel
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
-            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
-        
-            }
+            return BadRequest(ModelState);
         }
+
+        var prediction = await _predictionService.PredictTicketAsync(incomingTicket.Description);
+        
+        if (prediction == null)
+        {
+            return StatusCode(400, new { error = "Issue is unrelated to IT support. Please describe a Hardware, Network, or Software problem." });
+        }
+
+        string category = prediction.Value.Category;
+        string priorityLevel = prediction.Value.Label; 
+        int priorityWeight = prediction.Value.Weight;  
+        
+        string sql = @"
+            INSERT INTO ActiveTickets (SubmitterID, Description, Location, Category, PriorityLevel, PriorityWeight, Status) 
+            VALUES (@SubmitterID, @Description, @Location, @Category, @PriorityLevel, @PriorityWeight, 'Open')";
+        
+        var parameters = new Dictionary<string, object>
+        {
+            { "@SubmitterID", incomingTicket.SubmitterID },
+            { "@Description", incomingTicket.Description },
+            { "@Location", incomingTicket.Location },
+            { "@Category", category },
+            { "@PriorityLevel", priorityLevel },
+            { "@PriorityWeight", priorityWeight }
+        };
+        
+        _dbHelper.ExecuteModifyQuery(sql, parameters);
+        
+        return Ok(new { 
+            message = "Ticket submitted! AI routed it to: " + category,
+            category = category,
+            priority = priorityLevel
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+        return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
+    }
+}
     
         [HttpGet("active")]
         public IActionResult GetActiveTickets()
