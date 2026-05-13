@@ -7,7 +7,8 @@ namespace TicketFlowAPI.Models
         public int TicketID { get; set; }
         public int SubmitterID { get; set; }
         
-        [Required]
+        [Required(ErrorMessage = "You must provide a description.")]
+        [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
         public string Description { get; set; }
         
         [Required]

@@ -9,7 +9,12 @@ namespace TicketFlowAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
+        private readonly DatabaseHelper _dbHelper;
+
+        public AuthController(DatabaseHelper dbHelper)
+        {
+            _dbHelper = dbHelper;
+        }
 
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterRequest newUser)
@@ -17,8 +22,9 @@ namespace TicketFlowAPI.Controllers
         try
         {
         
-            string checkUserSql = $"SELECT UserID FROM Users WHERE Username = '{newUser.Username}'";
-            var existingUser = _dbHelper.ExecuteSelectQuery(checkUserSql);
+            string checkUserSql = "SELECT UserID FROM Users WHERE Username = @Username";
+            var parametersUser = new Dictionary<string, object> { { "@Username", newUser.Username } };
+            var existingUser = _dbHelper.ExecuteSelectQuery(checkUserSql, parametersUser);
 
             if (existingUser.Rows.Count > 0)
             {
@@ -48,7 +54,8 @@ namespace TicketFlowAPI.Controllers
         }
         catch (System.Exception ex)
         {
-            return StatusCode(500, new { error = "Registration failed: " + ex.Message });
+            System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
         }
     }
 
@@ -58,11 +65,13 @@ namespace TicketFlowAPI.Controllers
             try
             {
                 
+                
                 string sql = $@"SELECT UserID, FName, LName, Role, PasswordHash 
                                 FROM Users 
-                                WHERE Username = '{login.Username}'";
+                                WHERE Username = @Username";
+                var parameters = new Dictionary<string, object> { { "@Username", login.Username } };
 
-                DataTable result = _dbHelper.ExecuteSelectQuery(sql);
+                DataTable result = _dbHelper.ExecuteSelectQuery(sql, parameters);
 
                 
                 if (result.Rows.Count == 1)
@@ -90,7 +99,8 @@ namespace TicketFlowAPI.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { error = "Login failed: " + ex.Message });
+                System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
             }
         }
 
@@ -131,7 +141,8 @@ namespace TicketFlowAPI.Controllers
                 }
                 catch (System.Exception ex)
                 {
-                    return StatusCode(500, new { error = "An error occurred: " + ex.Message });
+                    System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
+            return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
                 }
             }
     }

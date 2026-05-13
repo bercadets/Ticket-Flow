@@ -6,8 +6,12 @@ namespace TicketFlowAPI.Services
     public class DatabaseHelper
     {
        
-        private readonly string connectionString = "Server=localhost; Database=SmartTicketingDB; Uid=root; Pwd=;";
+        private readonly string connectionString;
         
+        public DatabaseHelper(IConfiguration configuration)
+            {
+                connectionString = configuration.GetConnectionString("DefaultConnection");
+            }
         public MySqlConnection GetConnection()
         {
             return new MySqlConnection(connectionString);
