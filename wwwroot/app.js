@@ -585,7 +585,7 @@ async function renderStudentDashboard() {
             
             const activeFilteredCount = filteredTickets.filter(t => t.status !== "Resolved").length;
             const totalActive = allMyTickets.filter(t => t.status !== "Resolved").length;
-            document.getElementById("filterStats").innerHTML = `Showing ${activeFilteredCount} of ${totalActive} active tickets`;
+            document.getElementById("filterStats").innerHTML = `Showing ${activeFilteredCount} out of ${totalActive} active tickets`;
             renderTicketsTable();
         }
         
@@ -811,7 +811,7 @@ async function renderMyTickets() {
             
             const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
             const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
-            document.getElementById("myTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;
+            document.getElementById("myTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} out of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;            
             renderMyTicketsTable();
         }
         
@@ -953,7 +953,7 @@ async function renderMyTickets() {
                     <option value="Standard">🟡 Standard</option>
                 </select>
                 <button id="clearMyTicketsFiltersBtn" class="clear-filters-btn">Clear Filters</button>
-                <span id="myTicketsFilterStats" class="filter-stats">Showing ${allMyTickets.length} of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)</span>
+                <span id="myTicketsFilterStats" class="filter-stats">Showing ${allMyTickets.length} out of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)</span>
             </div>
             
             <div id="myTicketsTableContainer"></div>
@@ -1007,7 +1007,7 @@ async function renderAdminDashboard() {
                 return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
             });
             
-            document.getElementById("adminFilterStats").innerHTML = `Showing ${filteredTickets.length} of ${allTickets.length} tickets`;
+            document.getElementById("adminFilterStats").innerHTML = `Showing ${filteredTickets.length} out of ${allTickets.length} tickets`;
             renderAdminTable();
         }
         
@@ -1233,7 +1233,7 @@ async function renderAllTicketsAdmin() {
             
             const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
             const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
-            document.getElementById("allTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} of ${allTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;
+            document.getElementById("allTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} out of ${allTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;
             renderAllTicketsTable();
         }
         
@@ -1380,7 +1380,7 @@ async function renderAllTicketsAdmin() {
                     <option value="Standard">🟡 Standard</option>
                 </select>
                 <button id="clearAllTicketsFiltersBtn" class="clear-filters-btn">Clear Filters</button>
-                <span id="allTicketsFilterStats" class="filter-stats">Showing ${allTickets.length} of ${allTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)</span>
+                <span id="allTicketsFilterStats" class="filter-stats">Showing ${allTickets.length} out of ${allTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)</span>
             </div>
             
             <div id="allTicketsTableContainer"></div>
