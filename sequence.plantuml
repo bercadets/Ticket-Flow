@@ -1,0 +1,57 @@
+@startuml TicketFlow
+skinparam maxMessageSize 200
+skinparam BoxPadding 10
+
+actor "User\n(Student/Admin)" as User
+participant "Browser\n(JavaScript UI)" as UI
+database "LocalStorage\n(Browser Vault)" as LS
+
+box "C# Backend (TicketFlowAPI)" #E8F4F8
+    participant "ASP.NET\nMiddleware" as Mid
+    participant "AuthController" as Auth
+    participant "TicketsController" as Tickets
+    participant "DatabaseHelper" as DB
+end box
+
+database "MySQL Database" as MySQL
+
+== 1. The Login Flow (Getting the ID Card) ==
+
+User -> UI: Clicks "Login" with Credentials
+UI -> Auth: POST /api/auth/login\n(Username, Password)
+Auth -> DB: ExecuteSelectQuery()\n""SELECT UserID, Role, PasswordHash...""
+DB -> MySQL: Execute SQL
+MySQL --> DB: Return Results
+DB --> Auth: Returns DataTable Row
+Auth -> Auth: BCrypt.Verify(Password, Hash)
+Auth -> Auth: GenerateJwtToken(Username, Role)
+note right of Auth: Creates the 2-hour token\nusing the Secret Key
+Auth --> UI: 200 OK\n{ message, token, Role... }
+note left of UI: Using the lowercase 'token'\nwe fixed earlier!
+UI -> LS: setItem('ticketflow_token', token)
+UI --> User: Redirects to Dashboard
+
+== 2. The Secure Request Flow (Showing the ID Card) ==
+
+User -> UI: Opens Dashboard (tickets.html)
+UI -> LS: getItem('ticketflow_token')
+LS --> UI: Returns JWT String
+UI -> Mid: GET /api/tickets/active\nHeader: Authorization: Bearer <token>
+
+note over Mid: Middleware Checks:\n1. Is Signature Valid?\n2. Is Token Expired?\n3. Does User have 'Student' or 'Admin' role?
+
+alt Token is Valid
+    Mid -> Tickets: Request Allowed
+    Tickets -> DB: ExecuteSelectQuery()\n""SELECT t.*, n.NoteText...""
+    DB -> MySQL: Execute SQL
+    MySQL --> DB: Return Results
+    DB --> Tickets: Returns DataTable
+    Tickets --> UI: 200 OK\n[ Array of TicketResponse Objects ]
+    UI --> User: Draws Tickets on Screen
+else Token Expired / Invalid
+    Mid --> UI: 401 Unauthorized
+    UI -> LS: removeItem('ticketflow_token')
+    UI --> User: Redirects back to Login
+end
+
+@enduml

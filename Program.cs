@@ -29,7 +29,6 @@ builder.Services.AddScoped<PredictionService>();
 
 var app = builder.Build();
 
-
 app.UseHttpsRedirection();
 app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseDefaultFiles();
