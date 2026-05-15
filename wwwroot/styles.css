@@ -206,10 +206,12 @@ body {
 }
 
 .stat-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-light);
-  text-transform: uppercase;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
 
 .stat-number {
