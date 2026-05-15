@@ -71,7 +71,7 @@ Students submit IT support tickets through an intuitive web dashboard. Type in y
 
 Below is the system architecture UML diagram showing the relationships between all major components:
 
-![TicketFlow System UML Diagram](docs/uml-diagram.png)
+![TicketFlow System UML Diagram](docs/uml.png)
 
 **Key Components:**
 - **Users** – Student and Admin roles with authentication
