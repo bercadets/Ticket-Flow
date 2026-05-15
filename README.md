@@ -17,7 +17,7 @@
 ⣿⣿⣿⡇⠀⠀⠀⠀⠀⠬⡿⠟⠛⠻⣿⣿⣿⣟⡛⠛⠛⡛⠁⣈⡻⠀⠈⠛⠠⡔⢶⢶⠄⠀⠀⠃⢴⢾⠛⡤⠸⡀⡏⣮⣁⠉⣉⠿⠿⣛⣿⣿⣿⣿⡿⢋⠉⠛⠄⠄⠀⡀⠀⠚⣿⣿⣿
 ⣿⣿⣿⡇⠀⠀⠀⠀⠀⢀⢐⣶⣾⣿⣿⣿⣿⣿⣿⣷⣮⡤⢀⠠⢠⣶⠀⢲⠇⠈⠁⠁⠀⠀⠠⠀⠀⠉⠈⠀⢤⢤⢓⠿⢔⣡⣴⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀⠀⠠⠈⢀⠂⣿⣿⣿
 ⣿⣿⣿⣿⡀⠀⠠⠄⢂⣴⣿⣿⣿⣿⡿⣟⣿⣯⣿⣿⣿⡇⠀⠫⡔⠿⠧⣈⣝⠄⠀⠀⡀⠀⠀⢀⠀⠀⠀⠴⣗⣮⣾⣻⡷⡘⣿⣿⣿⢿⣿⣯⣿⣟⣿⡿⣿⣿⣿⡆⠀⠀⠀⢸⣿⣿⣿
-⣿⣿⣯⣿⡇⠀⠀⠀⢸⣿⡿⣿⣽⣾⣿⣿⣿⣻⣟⣿⣾⢡⠀⢠⡟⣹⡗⣿⣷⡁⠀⠀⠈⠑⠐⠃⠀⢀⢈⣼⣷⡇⢃⣿⡧⣑⣻⣿⡿⣿⣯⣿⣟⣿⣿⢿⣟⣯⣿⣇⠀⠈⡀⢸⣿⣿
+⣿⣿⣯⣿⡇⠀⠀⠀⢸⣿⡿⣿⣽⣾⣿⣿⣿⣻⣟⣿⣾⢡⠀⢠⡟⣹⡗⣿⣷⡁⠀⠀⠈⠠⠄⠐⠀⢀⢈⣼⣷⡇⢃⣿⡧⣑⣻⣿⡿⣿⣯⣿⣟⣿⣿⢿⣟⣯⣿⣇⠀⠈⡀⢸⣿⣿
 ⣿⣷⢿⠛⠁⠀⠀⣀⣸⢻⣿⢿⣯⣿⣷⢿⣻⣟⣿⣯⡏⣄⡀⠀⠱⢩⠓⣻⣿⡿⣶⢠⣀⠀⠀⢀⢴⣷⣿⡿⡇⢏⣼⡸⡥⡙⣮⢿⣿⣻⣽⣿⣻⣿⣾⢿⣿⣻⡇⠈⠐⡀⠤⠤⠎⣿
 ⡏⠋⠒⠋⠁⠉⠀⢡⢣⠛⣿⡿⣯⣷⢿⣟⣿⣯⣿⣽⡧⢇⢂⠀⠐⠡⢳⠸⣿⣿⠙⢓⣲⡻⠟⠷⠚⠯⣿⣿⠰⣣⠶⡑⢦⣷⡸⣿⣿⣻⣟⣷⣿⣻⣾⢿⡷⣿⠇⠄⡀⠀⠀⠀⠘⣿
 ⣇⠀⠀⣀⠀⠤⠐⣀⢥⢞⣿⣟⡿⣽⣯⢿⣳⣯⠟⠎⠃⠈⠘⠱⣀⠀⠒⠱⣹⢛⡄⠛⣃⣈⣐⡀⢀⢤⣟⢿⣓⠃⣰⡼⡫⠂⠁⠀⠉⠛⢻⣽⡾⣿⡽⣟⣿⣽⡄⡁⠂⠩⠀⢀⣛⣿
@@ -67,6 +67,24 @@ Students submit IT support tickets through an intuitive web dashboard. Type in y
 
 ---
 
+## 📊 UML Diagram
+
+Below is the system architecture UML diagram showing the relationships between all major components:
+
+![TicketFlow System UML Diagram](docs/uml.png)
+
+**Key Components:**
+- **Users** – Student and Admin roles with authentication
+- **TicketsController** – REST API endpoint for ticket operations
+- **ActiveTicket** – Model for current tickets in the system
+- **PredictionService** – AI-powered categorization using Google Gemini
+- **DatabaseHelper** – MySQL connection and query management
+- **TicketArchive** – Historical records of resolved tickets
+- **ResolutionNotes** – Detailed notes added by support staff
+- **AuthController** – User authentication and password management
+
+---
+
 ## ⚙️ Prerequisites & Installation
 
 ### System Requirements
@@ -82,8 +100,8 @@ Ensure you have these installed before proceeding:
 
 **1. Clone the Repository**
 ```bash
-git clone https://github.com/yourusername/Smart-IT-Ticketing-and-Support-Desk-Application.git
-cd Smart-IT-Ticketing-and-Support-Desk-Application
+git clone https://github.com/bercadets/Ticket-Flow.git
+cd Ticket-Flow
 ```
 
 **2. Restore Dependencies**
@@ -170,17 +188,24 @@ Once running, visit `https://localhost:5001/swagger` to explore all API endpoint
 
 ---
 
-## 🛣️ Roadmap
+---
 
-### Currently Building
-- **v1.0** – Core AI-powered ticket routing and dashboard
+## 👥 Team Members
 
-### Planned Features
-- **Email Notifications** – Automatic updates to users and staff when ticket status changes
-- **Advanced Analytics Dashboard** – Metrics on response times, common issues, team performance
-- **Intelligent Ticket Assignment** – Auto-assign to support staff based on expertise
-- **Multiple AI Providers** – Support Claude, ChatGPT, and other LLMs alongside Gemini
-- **Mobile Application** – iOS/Android apps for on-the-go ticket management
-- **SLA Tracking** – Automatic escalation for tickets exceeding response time goals
-- **Knowledge Base Integration** – Link resolved tickets to searchable FAQs for faster resolutions
-- **Post-Resolution Surveys** – Collect user satisfaction feedback for continuous improvement
+This project was developed by:
+
+| Role | Name |
+|------|------|
+| **Project Manager** | Davalos, Nicko Bryan J. |
+| **Front End Developer** | Cueto, Carl John T. |
+| **Backend Developer** | Abrigo, John Nathaniel F. |
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License – see the LICENSE file for details.
+
+## 💬 Support
+
+For questions, issues, or contributions, please open an issue on the GitHub repository or contact the development team directly.
