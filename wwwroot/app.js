@@ -644,19 +644,25 @@ async function renderStudentDashboard() {
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Created</th>
+                                    <th style="text-align: left;">ID</th>
+                                    <th style="text-align: left;">Description</th>
+                                    <th style="text-align: left;">Location</th>
+                                    <th style="text-align: left;">Category</th>
+                                    <th style="text-align: left;">Priority</th>
+                                    <th style="text-align: left;">Status</th>
+                                    <th style="text-align: left;">Created</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${activeOnly.map(t => `
                                     <tr>
-                                        <td data-label="ID"><strong>#${t.ticketID}</strong></td>
-                                        <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
-                                        <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
-                                        <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                        <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                        <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
-                                        <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
+                                        <td style="text-align: left;"><strong>#${t.ticketID}</strong></td>
+                                        <td style="text-align: left;">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                        <td style="text-align: left;">📍 ${t.location || 'Not specified'}</td>
+                                        <td style="text-align: left;"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                        <td style="text-align: left;">${new Date(t.createdAt).toLocaleDateString()}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -811,7 +817,7 @@ async function renderMyTickets() {
             
             const activeCount = filteredTickets.filter(t => t.status !== "Resolved").length;
             const resolvedCount = filteredTickets.filter(t => t.status === "Resolved").length;
-            document.getElementById("myTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} out of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;            
+            document.getElementById("myTicketsFilterStats").innerHTML = `Showing ${filteredTickets.length} out of ${allMyTickets.length} tickets (${activeCount} active, ${resolvedCount} resolved)`;
             renderMyTicketsTable();
         }
         
@@ -885,27 +891,27 @@ async function renderMyTickets() {
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Description</th>
-                                    <th>Location</th>
-                                    <th>Category</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
+                                    <th style="text-align: left;">ID</th>
+                                    <th style="text-align: left;">Description</th>
+                                    <th style="text-align: left;">Location</th>
+                                    <th style="text-align: left;">Category</th>
+                                    <th style="text-align: left;">Priority</th>
+                                    <th style="text-align: left;">Status</th>
+                                    <th style="text-align: left;">Created</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${filteredTickets.map(t => `
-                                    <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
-                                        <td data-label="ID"><strong>#${t.ticketID}</strong></td>
-                                        <td data-label="Description">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
-                                        <td data-label="Location">📍 ${t.location || 'Not specified'}</td>
-                                        <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                        <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                        <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
-                                        <td data-label="Created">${new Date(t.createdAt).toLocaleDateString()}</td>
+                                ${filteredTickets.map(t => {
+                    if (t.status === 'Resolved') {
+                        return `<tr style="cursor: pointer;" onclick="toggleNote(${t.ticketID})">
+                                        <td style="text-align: left;"><strong>#${t.ticketID}</strong></td>
+                                        <td style="text-align: left;">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                        <td style="text-align: left;">📍 ${t.location || 'Not specified'}</td>
+                                        <td style="text-align: left;"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                        <td style="text-align: left;"><span class="badge badge-resolved">${t.status}</span></td>
+                                        <td style="text-align: left;">${new Date(t.createdAt).toLocaleDateString()}</td>
                                     </tr>
-                                    ${t.status === 'Resolved' ? `
                                     <tr id="note-${t.ticketID}" class="hidden">
                                         <td colspan="7" style="padding: 0; border: none;">
                                             <div style="margin: 5px 15px 15px 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
@@ -913,9 +919,19 @@ async function renderMyTickets() {
                                                 ${t.resolutionNote || 'No resolution note provided for this ticket.'}
                                             </div>
                                         </td>
-                                    </tr>
-                                    ` : ''}
-                                `).join('')}
+                                    </tr>`;
+                    } else {
+                        return `<tr>
+                                        <td style="text-align: left;"><strong>#${t.ticketID}</strong></td>
+                                        <td style="text-align: left;">${t.description?.substring(0, 60)}${t.description?.length > 60 ? '...' : ''}</td>
+                                        <td style="text-align: left;">📍 ${t.location || 'Not specified'}</td>
+                                        <td style="text-align: left;"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                        <td style="text-align: left;">${new Date(t.createdAt).toLocaleDateString()}</td>
+                                    </tr>`;
+                    }
+                }).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -969,17 +985,6 @@ async function renderMyTickets() {
         
     } catch (error) {
         container.innerHTML = `<div style="color:red;">❌ Error: ${error.message}</div>`;
-    }
-}
-
-async function toggleNote(ticketId) {
-    const noteRow = document.getElementById(`note-${ticketId}`);
-    if (noteRow) {
-        if (noteRow.classList.contains("hidden")) {
-            noteRow.classList.remove("hidden");
-        } else {
-            noteRow.classList.add("hidden");
-        }
     }
 }
 
@@ -1109,32 +1114,41 @@ async function renderAdminDashboard() {
                 
             } else {
                 tableContainer.innerHTML = `
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Submitter</th><th>Description</th><th>Location</th><th>Category</th><th>Priority</th><th>Status</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody>
-                                ${activeTickets.map(t => `
-                                    <tr>
-                                        <td>#${t.ticketID}</td>
-                                        <td>${t.submitterID || 'N/A'}${" "} 
-                                        <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
-                                        <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                        <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                        <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                        <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
-                                        <td>
-                                            ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
-                                            ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
-                                            ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">ID</th>
+                                <th style="text-align: left;">Submitter</th>
+                                <th style="text-align: left;">Description</th>
+                                <th style="text-align: left;">Location</th>
+                                <th style="text-align: left;">Category</th>
+                                <th style="text-align: left;">Priority</th>
+                                <th style="text-align: left;">Status</th>
+                                <th style="text-align: left;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${activeTickets.map(t => `
+                                <tr>
+                                    <td style="text-align: left;"><strong>#${t.ticketID}</strong></td>
+                                    <td style="text-align: left;">${t.submitterID || 'N/A'}${" "} \n
+                                    <td style="text-align: left;">${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                    <td style="text-align: left;"><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                    <td style="text-align: left;"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                    <td style="text-align: left;"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                    <td style="text-align: left;"><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                    <td style="text-align: left;">
+                                        ${t.status === 'Open' ? `<button class="btn-outline startBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#357EDD; color:white; margin-right:5px;">▶ Start</button>` : ''}
+                                        ${t.status === 'In Progress' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px; background:#2C8E5A; color:white; margin-right:5px;">✓ Resolve</button>` : ''}
+                                        ${t.status === 'Open' ? `<button class="btn-outline resolveBtn" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
                 
                 document.querySelectorAll(".startBtn").forEach(btn => {
                     btn.addEventListener("click", async (e) => {
@@ -1312,25 +1326,25 @@ async function renderAllTicketsAdmin() {
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Submitter ID</th>
-                                    <th>Description</th>
-                                    <th>Location</th>
-                                    <th>Category</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
+                                    <th style="text-align: left;">ID</th>
+                                    <th style="text-align: left;">Submitter ID</th>
+                                    <th style="text-align: left;">Description</th>
+                                    <th style="text-align: left;">Location</th>
+                                    <th style="text-align: left;">Category</th>
+                                    <th style="text-align: left;">Priority</th>
+                                    <th style="text-align: left;">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${filteredTickets.map(t => `
                                     <tr ${t.status === 'Resolved' ? `style="cursor: pointer;" onclick="toggleNote(${t.ticketID})"` : ''}>
-                                        <td data-label="ID"><strong>#${t.ticketID}</strong></td>
-                                        <td data-label="Submitter ID">${t.submitterID || 'N/A'}${" "} \n
-                                        <td data-label="Description">${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
-                                        <td data-label="Location"><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                        <td data-label="Category"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                        <td data-label="Priority"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                        <td data-label="Status"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
+                                        <td style="text-align: left;"><strong>#${t.ticketID}</strong></td>
+                                        <td style="text-align: left;">${t.submitterID || 'N/A'}${" "} \n
+                                        <td style="text-align: left;">${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                        <td style="text-align: left;"><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                        <td style="text-align: left;"><span class="badge ${t.status === 'Open' ? 'badge-open' : t.status === 'In Progress' ? 'badge-progress' : 'badge-resolved'}">${t.status}</span></td>
                                     </tr>
                                     ${t.status === 'Resolved' ? `
                                     <tr id="note-${t.ticketID}" class="hidden">
@@ -1339,12 +1353,12 @@ async function renderAllTicketsAdmin() {
                                                 <strong>IT Resolution Note:</strong><br> 
                                                 ${t.resolutionNote || 'No resolution note provided for this ticket.'}
                                             </div>
-                                         </td>
-                                     </tr>
+                                        </td>
+                                    </tr>
                                     ` : ''}
                                 `).join('')}
                             </tbody>
-                         </table>
+                        </table>
                     </div>
                 `;
             }
@@ -1464,39 +1478,39 @@ async function renderPriorityQueue() {
             
         } else {
             container.innerHTML = `
-                <h3>📊 Priority Queue</h3>
-                <p>Tickets sorted by urgency: Urgent → High Priority → Issue/Standard → Low</p>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
+            <h3>📊 Priority Queue</h3>
+            <p>Tickets sorted by urgency: Urgent → High Priority → Issue/Standard → Low</p>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ID</th>
+                            <th style="text-align: left;">Submitter ID</th>
+                            <th style="text-align: left;">Description</th>
+                            <th style="text-align: left;">Location</th>
+                            <th style="text-align: left;">Category</th>
+                            <th style="text-align: left;">Priority</th>
+                            <th style="text-align: left;">Status</th>
+                            <th style="text-align: left;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sorted.map(t => `
                             <tr>
-                                <th>ID</th>
-                                <th>Submitter ID</th>
-                                <th>Description</th>
-                                <th>Location</th>
-                                <th>Category</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <td style="text-align: left;"><strong>#${t.ticketID}</strong></td>
+                                <td style="text-align: left;">${t.submitterID || 'N/A'}${" "} \n
+                                <td style="text-align: left;">${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
+                                <td style="text-align: left;"><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
+                                <td style="text-align: left;"><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
+                                <td style="text-align: left;"><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
+                                <td style="text-align: left;"><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
+                                <td style="text-align: left;"><button class="btn-outline priorityResolve" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            ${sorted.map(t => `
-                                <tr>
-                                    <td>#${t.ticketID}</td>
-                                    <td>${t.submitterID || 'N/A'}${" "} 
-                                    <td>${t.description?.substring(0, 50)}${t.description?.length > 50 ? '...' : ''}</td>
-                                    <td><span class="badge" style="background:#F0F4FA;">📍 ${t.location || 'Not specified'}</span></td>
-                                    <td><span class="badge ${t.category === 'Hardware' ? 'badge-hw' : t.category === 'Software' ? 'badge-sw' : 'badge-net'}">${t.category || 'N/A'}</span></td>
-                                    <td><span class="badge ${t.priorityLevel === 'Urgent' ? 'badge-high' : 'badge-medium'}">${t.priorityLevel || 'Standard'}</span></td>
-                                    <td><span class="badge ${t.status === 'Open' ? 'badge-open' : 'badge-progress'}">${t.status}</span></td>
-                                    <td><button class="btn-outline priorityResolve" data-id="${t.ticketID}" style="padding:4px 12px;">Resolve</button></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
             
             document.querySelectorAll(".priorityResolve").forEach(btn => {
                 btn.addEventListener("click", async (e) => {
