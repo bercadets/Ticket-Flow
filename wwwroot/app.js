@@ -687,22 +687,27 @@ async function renderStudentDashboard() {
             
             <div class="filter-bar">
                 <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search by ID or description..." autocomplete="off">
-                <select id="statusFilter" class="form-control">
-                    <option value="all">All Status</option>
-                    <option value="Open">🟡 Open</option>
-                    <option value="In Progress">🔵 In Progress</option>
-                </select>
+                <!-- Category Filter -->
                 <select id="categoryFilter" class="form-control">
                     <option value="all">All Categories</option>
                     <option value="Hardware">🖥️ Hardware</option>
                     <option value="Software">💿 Software</option>
                     <option value="Network">🌐 Network</option>
                 </select>
+
+                <!-- Priority Filter -->
                 <select id="priorityFilter" class="form-control">
                     <option value="all">All Priorities</option>
                     <option value="Urgent">🔴 Urgent</option>
                     <option value="High Priority">🟠 High Priority</option>
                     <option value="Standard">🟡 Standard</option>
+                </select>
+
+                <!-- Status Filter -->
+                <select id="statusFilter" class="form-control">
+                    <option value="all">All Status</option>
+                    <option value="Open">🔵 Open</option>
+                    <option value="In Progress">🟠 In Progress</option>
                 </select>
                 <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
                 <span id="filterStats" class="filter-stats">${allMyTickets.filter(t => t.status !== "Resolved").length} active tickets</span>

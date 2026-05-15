@@ -239,25 +239,31 @@ body {
   margin-top: 4px;
 }
 
-/* Badges */
+/* Badges - Clean Professional */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  border-radius: 40px;
+  border-radius: 20px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
-.badge-high { background: #FEF2E8; color: #C96B1A; }
-.badge-medium { background: #EFF6FF; color: #1F5FCF; }
-.badge-low { background: #E6F7EC; color: #1F7840; }
-.badge-open { background: #EFF2F8; color: #4A627A; }
-.badge-progress { background: #FFF0DD; color: #C97E1A; }
-.badge-resolved { background: #E3F7EC; color: #1F7840; }
-.badge-hw { background: #F0EFFD; color: #5B4B9E; }
-.badge-sw { background: #E3F3FF; color: #1F5FCF; }
-.badge-net { background: #E0F7F0; color: #1C6F4A; }
+
+/* Category Badges - Subtle distinction */
+.badge-hw { background: #F0F4FA; color: #4A627A; }
+.badge-sw { background: #F0F4FA; color: #4A627A; }
+.badge-net { background: #F0F4FA; color: #4A627A; }
+
+/* Priority Badges - Meaningful colors */
+.badge-high { background: #FEF2F2; color: #B91C1C; }
+.badge-medium { background: #FFFBEB; color: #B45309; }
+.badge-low { background: #ECFDF5; color: #047857; }
+
+/* Status Badges */
+.badge-open { background: #EFF6FF; color: #1D4ED8; }
+.badge-progress { background: #FFFBEB; color: #B45309; }
+.badge-resolved { background: #ECFDF5; color: #047857; }
 
 /* Tables */
 .data-table {
@@ -275,6 +281,7 @@ body {
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: left;
 }
 
 .data-table thead tr th:first-child {
@@ -301,6 +308,7 @@ body {
   padding: 16px;
   border: none;
   background: var(--card-white);
+  text-align: left;
 }
 
 .data-table tbody tr td:first-child {
@@ -332,7 +340,12 @@ body {
   align-items: center;
   gap: 8px;
 }
-.btn-primary:hover { background: var(--primary-dark); transform: scale(0.98); }
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: scale(0.98);
+}
+
 .btn-outline {
   background: transparent;
   border: 1px solid var(--border-light);
@@ -342,15 +355,19 @@ body {
   cursor: pointer;
   transition: 0.2s;
 }
-.btn-outline:hover { background: var(--primary-light); border-color: var(--primary); }
+
+.btn-outline:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 .ticket-row-hover:hover {
-    background-color: #f1f3f5;
-    transition: background-color 0.2s ease;
+  background-color: #f1f3f5;
+  transition: background-color 0.2s ease;
 }
 
 /* Forms */
@@ -362,8 +379,18 @@ body {
   max-width: 700px;
   width: 100%;
 }
-.form-group { margin-bottom: 1.2rem; }
-.form-label { font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block; }
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+  display: block;
+}
+
 .form-control {
   width: 100%;
   padding: 12px 14px;
@@ -372,6 +399,7 @@ body {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
 }
+
 .filter-bar {
   display: flex;
   gap: 12px;
@@ -381,7 +409,7 @@ body {
   background: white;
   padding: 1rem;
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .filter-bar .form-control {
@@ -396,18 +424,6 @@ body {
   border: 1px solid var(--border-light);
   background: white;
   font-size: 13px;
-}
-
-.filter-group {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.filter-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
 }
 
 .filter-stats {
@@ -442,6 +458,7 @@ body {
   background: linear-gradient(135deg, #F0F5FF 0%, #FFFFFF 100%);
   padding: 1rem;
 }
+
 .login-card {
   background: white;
   border-radius: 32px;
@@ -451,6 +468,7 @@ body {
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-light);
 }
+
 .error-msg {
   background: #FEF2F0;
   color: #D14545;
@@ -461,26 +479,25 @@ body {
   text-align: center;
 }
 
-/* Forgot Password Hover */
 #forgotPasswordBtn:hover {
-    color: #357EDD !important;
-    text-decoration: underline !important;
+  color: #357EDD !important;
+  text-decoration: underline !important;
 }
 
 /* Mobile Styles */
 @media (max-width: 768px) {
-  .top-nav { 
-    padding: 0 1rem; 
+  .top-nav {
+    padding: 0 1rem;
   }
-  
-  .logo-area h1 { 
-    font-size: 1.2rem; 
+
+  .logo-area h1 {
+    font-size: 1.2rem;
   }
-  
-  .logo-area span { 
-    display: none; 
+
+  .logo-area span {
+    display: none;
   }
-  
+
   .sidebar {
     position: fixed;
     left: 0;
@@ -491,33 +508,34 @@ body {
     transition: transform var(--transition-speed) ease;
     box-shadow: var(--shadow-md);
   }
-  
+
   .sidebar.collapsed {
     transform: translateX(-100%);
     width: var(--sidebar-width);
   }
-  
+
   .sidebar.collapsed .nav-item span:last-child {
     display: inline;
   }
-  
+
   .sidebar.collapsed .nav-item {
     justify-content: flex-start;
     padding: 12px 18px;
   }
-  
+
   .nav-item {
     padding: 14px 18px;
     margin: 4px 0;
     min-height: 52px;
   }
-  
-  .btn-primary, .btn-outline {
+
+  .btn-primary,
+  .btn-outline {
     padding: 12px 20px;
     min-height: 48px;
     font-size: 14px;
   }
-  
+
   .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -525,73 +543,72 @@ body {
     margin: 0 -0.5rem;
     padding: 0 0.5rem;
   }
-  
+
   .data-table {
     min-width: 600px;
   }
-  
+
   .data-table th,
   .data-table td {
     padding: 12px 10px;
     font-size: 12px;
   }
-  
+
   .form-control {
     font-size: 16px;
     padding: 14px;
   }
-  
+
   .form-card {
     padding: 1.25rem;
     margin: 0;
   }
-  
-  .content-area { 
-    padding: 1rem; 
+
+  .content-area {
+    padding: 1rem;
   }
-  
+
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  
+
   .stat-card {
     padding: 1rem;
   }
-  
+
   .stat-number {
     font-size: 24px;
   }
-  
+
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-bar select,
   .filter-bar input {
     width: 100%;
     padding: 12px;
   }
-  
+
   .mobile-overlay {
     position: fixed;
     top: 70px;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 98;
   }
 
-  /* Mobile Ticket Cards */
   .mobile-tickets {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
     margin-top: 1rem;
   }
-  
+
   .mobile-ticket-card {
     background: white;
     border-radius: 20px;
@@ -600,12 +617,12 @@ body {
     transition: all 0.3s ease;
     border: 1px solid rgba(0, 0, 0, 0.05);
   }
-  
+
   .mobile-ticket-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
-  
+
   .ticket-header {
     display: flex;
     justify-content: space-between;
@@ -616,19 +633,19 @@ body {
     transition: background 0.2s;
     border-bottom: 2px solid transparent;
   }
-  
+
   .ticket-header.expanded {
     border-bottom-color: var(--primary);
     background: linear-gradient(135deg, #f0f4fa 0%, #ffffff 100%);
   }
-  
+
   .ticket-header-left {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
   }
-  
+
   .ticket-id {
     font-weight: 800;
     font-size: 16px;
@@ -637,7 +654,7 @@ body {
     padding: 4px 12px;
     border-radius: 20px;
   }
-  
+
   .ticket-status-badge {
     display: inline-flex;
     align-items: center;
@@ -648,22 +665,22 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  
+
   .ticket-status-badge.badge-open {
-    background: #FFF3E0;
-    color: #E67E22;
+    background: #EFF6FF;
+    color: #1D4ED8;
   }
-  
+
   .ticket-status-badge.badge-progress {
-    background: #E3F2FD;
-    color: #2196F3;
+    background: #FFFBEB;
+    color: #B45309;
   }
-  
+
   .ticket-status-badge.badge-resolved {
-    background: #E8F5E9;
-    color: #4CAF50;
+    background: #ECFDF5;
+    color: #047857;
   }
-  
+
   .expand-icon {
     width: 32px;
     height: 32px;
@@ -676,31 +693,31 @@ body {
     color: var(--text-muted);
     font-size: 14px;
   }
-  
+
   .ticket-header.expanded .expand-icon {
     transform: rotate(180deg);
     background: var(--primary);
     color: white;
   }
-  
+
   .ticket-summary {
     padding: 1rem 1.25rem;
     background: #fafbfc;
     border-bottom: 1px solid var(--border-light);
   }
-  
+
   .ticket-desc {
     font-size: 14px;
     color: var(--text-dark);
     line-height: 1.5;
     font-weight: 500;
   }
-  
+
   .ticket-details {
     padding: 1.25rem;
     background: white;
   }
-  
+
   .detail-row {
     display: flex;
     justify-content: space-between;
@@ -708,11 +725,11 @@ body {
     padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
   }
-  
+
   .detail-row:last-child {
     border-bottom: none;
   }
-  
+
   .detail-label {
     font-weight: 600;
     color: var(--text-dark);
@@ -721,12 +738,12 @@ body {
     gap: 8px;
     font-size: 14px;
   }
-  
+
   .detail-value {
     color: var(--text-muted);
     font-size: 14px;
   }
-  
+
   .mobile-action-buttons {
     display: flex;
     gap: 12px;
@@ -734,7 +751,7 @@ body {
     padding-top: 16px;
     border-top: 1px solid var(--border-light);
   }
-  
+
   .mobile-action-buttons button {
     flex: 1;
     padding: 12px;
@@ -748,45 +765,45 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
-  
+
   .stat-card {
     padding: 0.75rem;
   }
-  
+
   .stat-number {
     font-size: 20px;
   }
-  
+
   .stat-title {
     font-size: 11px;
   }
-  
+
   .badge {
     padding: 3px 8px;
     font-size: 10px;
   }
-  
+
   .ticket-header-left {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .detail-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
-  
+
   .detail-label {
     width: 100%;
   }
-  
+
   .detail-value {
     width: 100%;
     text-align: left;
   }
-  
+
   .mobile-action-buttons {
     flex-direction: column;
   }
