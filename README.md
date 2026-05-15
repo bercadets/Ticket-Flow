@@ -96,6 +96,19 @@ Ensure you have these installed before proceeding:
 - **Google Gemini API Key** (free tier at https://ai.google.dev/)
 - **Git** (for cloning the repository)
 
+### Project Dependencies
+
+The following NuGet packages are required and will be automatically restored:
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| **BCrypt.Net-Next** | 4.1.0 | Secure password hashing and verification |
+| **Google.GenAI** | 1.6.1 | Google Gemini AI integration for ticket categorization |
+| **Microsoft.AspNetCore.Authentication.JwtBearer** | 10.0.7 | JWT token-based authentication |
+| **Microsoft.AspNetCore.OpenApi** | 10.0.3 | OpenAPI/Swagger documentation support |
+| **MySql.Data** | 9.6.0 | MySQL database connectivity |
+| **Swashbuckle.AspNetCore** | 10.1.7 | Swagger UI and API documentation |
+
 ### Step-by-Step Installation
 
 **1. Clone the Repository**
