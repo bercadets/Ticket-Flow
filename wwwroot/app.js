@@ -142,14 +142,14 @@ function renderLoginScreen(root) {
                     <a href="#" id="forgotPasswordBtn" style="color: var(--text-muted); font-size: 12px; text-decoration: none;">Forgot Password?</a>
                 </div>
                 
-                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-light); text-align: center;">
+                <div style="margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light); text-align: center;">
                     <p style="color: var(--text-muted); font-size: 13px; margin: 0;">
                         Don't have an account? 
                         <a href="#" id="showRegisterBtn" style="color: #357EDD; text-decoration: none; font-weight: 600;">Register here</a>
                     </p>
                 </div>
                 
-                <div id="loginError" style="margin-top: 16px;"></div>
+                <div id="loginError" style="margin-top:0.5px;"></div>
             </div>
         </div>
     `;
