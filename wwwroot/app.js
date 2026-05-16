@@ -1538,6 +1538,17 @@ async function renderPriorityQueue() {
     }
 }
 
+function toggleNote(ticketId) {
+    const noteRow = document.getElementById(`note-${ticketId}`);
+    if (noteRow) {
+        if (noteRow.classList.contains("hidden")) {
+            noteRow.classList.remove("hidden");
+        } else {
+            noteRow.classList.add("hidden");
+        }
+    }
+}
+
 function showToast(message, type = "info") {
     const toast = document.createElement("div");
     toast.className = "toast-notification";
