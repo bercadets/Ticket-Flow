@@ -3,7 +3,7 @@ using TicketFlowAPI.Models;
 using MySql.Data.MySqlClient;
 using TicketFlowAPI.Services;
 using Microsoft.AspNetCore.Authorization;
-using System;
+
 
 namespace TicketFlowAPI.Controllers
 {
@@ -253,16 +253,7 @@ namespace TicketFlowAPI.Controllers
             {
                System.Console.WriteLine($"CRITICAL DB ERROR: {ex.Message}");
             return StatusCode(500, new { error = "An unexpected error occurred while processing your request. Please try again later." });
-        
             }
         }
-                
-
-
-  
-            
-
     }
-    
-    
 }

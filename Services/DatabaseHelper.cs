@@ -65,7 +65,6 @@ namespace TicketFlowAPI.Services
         {
             connection.Open();
 
-            // 1. Create the Users Table
             string createUsersTable = @"
                 CREATE TABLE IF NOT EXISTS `Users` (
                 `UserID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -76,7 +75,7 @@ namespace TicketFlowAPI.Services
                 `Role` varchar(20) NOT NULL CHECK (`Role` in ('Student','Admin'))
                 );";
 
-            // 2. Create the Active Tickets Table (With the Foreign Key!)
+
             string createTicketsTable = @"
                 CREATE TABLE IF NOT EXISTS `ActiveTickets` (
                 `TicketID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -117,7 +116,7 @@ namespace TicketFlowAPI.Services
                     FOREIGN KEY (`AdminID`) REFERENCES `Users`(`UserID`) ON DELETE CASCADE
                 );";
 
-            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(createUsersTable, connection))
+        using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(createUsersTable, connection))
             cmd.ExecuteNonQuery();
 
         using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(createTicketsTable, connection))

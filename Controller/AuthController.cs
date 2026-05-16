@@ -3,11 +3,8 @@ using TicketFlowAPI.Models;
 using TicketFlowAPI.Services;
 using System.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-
 namespace TicketFlowAPI.Controllers
+
 {
     [ApiController]
     [Route("api/[controller]")]
