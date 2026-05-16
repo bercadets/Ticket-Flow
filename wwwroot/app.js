@@ -133,7 +133,10 @@ function renderLoginScreen(root) {
                 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-control" id="loginPassword" placeholder="Password">
+                    <div style="position: relative;">
+                        <input type="password" class="form-control" id="loginPassword" placeholder="Password" style="padding-right: 40px;">
+                        <i class="fas fa-eye" id="toggleLoginPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
                 </div>
                 
                 <button class="btn-primary" id="loginBtn" style="width:100%; justify-content: center;">Log In →</button>
@@ -142,18 +145,27 @@ function renderLoginScreen(root) {
                     <a href="#" id="forgotPasswordBtn" style="color: var(--text-muted); font-size: 12px; text-decoration: none;">Forgot Password?</a>
                 </div>
                 
-                <div style="margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light); text-align: center;">
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light); text-align: center;">
                     <p style="color: var(--text-muted); font-size: 13px; margin: 0;">
                         Don't have an account? 
                         <a href="#" id="showRegisterBtn" style="color: #357EDD; text-decoration: none; font-weight: 600;">Register here</a>
                     </p>
                 </div>
                 
-                <div id="loginError" style="margin-top:0.5px;"></div>
+                <div id="loginError" style="margin-top: 4px;"></div>
             </div>
         </div>
     `;
     
+    // Toggle password visibility for Login
+    const toggleLoginPassword = document.getElementById("toggleLoginPassword");
+    const loginPassword = document.getElementById("loginPassword");
+    
+    toggleLoginPassword.addEventListener("click", function() {
+        const type = loginPassword.getAttribute("type") === "password" ? "text" : "password";
+        loginPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
     
     const forgotBtn = document.getElementById("forgotPasswordBtn");
     forgotBtn.addEventListener("mouseenter", () => {
@@ -252,12 +264,18 @@ function showResetPasswordScreen() {
                 
                 <div class="form-group">
                     <label class="form-label">New Password</label>
-                    <input type="password" class="form-control" id="newPassword" placeholder="Min. 6 characters">
+                    <div class="password-container" style="position: relative;">
+                        <input type="password" class="form-control" id="newPassword" placeholder="Min. 6 characters" style="padding-right: 40px;">
+                        <i class="fas fa-eye" id="toggleNewPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
-                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password">
+                    <div class="password-container" style="position: relative;">
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" style="padding-right: 40px;">
+                        <i class="fas fa-eye" id="toggleConfirmPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
                 </div>
                 
                 <button class="btn-primary" id="resetPasswordBtn" style="width:100%; justify-content: center;">Reset Password</button>
@@ -271,12 +289,32 @@ function showResetPasswordScreen() {
         </div>
     `;
     
+    // Toggle password visibility for New Password
+    const toggleNewPassword = document.getElementById("toggleNewPassword");
+    const newPassword = document.getElementById("newPassword");
+    
+    toggleNewPassword.addEventListener("click", function() {
+        const type = newPassword.getAttribute("type") === "password" ? "text" : "password";
+        newPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
+    
+    // Toggle password visibility for Confirm Password
+    const toggleConfirmPassword = document.getElementById("toggleConfirmPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+    
+    toggleConfirmPassword.addEventListener("click", function() {
+        const type = confirmPassword.getAttribute("type") === "password" ? "text" : "password";
+        confirmPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
+    
     document.getElementById("resetPasswordBtn").addEventListener("click", async () => {
         const fName = document.getElementById("resetFName").value.trim();
         const lName = document.getElementById("resetLName").value.trim();
         const username = document.getElementById("resetUsername").value.trim();
-        const newPassword = document.getElementById("newPassword").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
+        const newPasswordValue = newPassword.value;
+        const confirmPasswordValue = confirmPassword.value;
         
         document.getElementById("resetMessage").innerHTML = "";
         
@@ -285,22 +323,22 @@ function showResetPasswordScreen() {
             return;
         }
         
-        if (!newPassword || !confirmPassword) {
+        if (!newPasswordValue || !confirmPasswordValue) {
             showResetMessage("Please enter a new password", "error");
             return;
         }
         
-        if (newPassword.length < 6) {
+        if (newPasswordValue.length < 6) {
             showResetMessage("Password must be at least 6 characters", "error");
             return;
         }
         
-        if (newPassword !== confirmPassword) {
+        if (newPasswordValue !== confirmPasswordValue) {
             showResetMessage("Passwords do not match", "error");
             return;
         }
         
-        const result = await resetPassword(fName, lName, username, newPassword, confirmPassword);
+        const result = await resetPassword(fName, lName, username, newPasswordValue, confirmPasswordValue);
         
         if (result.message) {
             showResetMessage(result.message, "success");
@@ -354,12 +392,18 @@ function renderRegisterScreen(root) {
                 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-control" id="regPassword" placeholder="Create a password (min 6 characters)">
+                    <div style="position: relative;">
+                        <input type="password" class="form-control" id="regPassword" placeholder="Create a password (min 6 characters)" style="padding-right: 40px;">
+                        <i class="fas fa-eye" id="toggleRegPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
-                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password">
+                    <div style="position: relative;">
+                        <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirm your password" style="padding-right: 40px;">
+                        <i class="fas fa-eye" id="toggleRegConfirmPassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
                 </div>
                 
                 <button class="btn-primary" id="registerBtn" style="width:100%; justify-content: center;">Create Account →</button>
@@ -376,10 +420,29 @@ function renderRegisterScreen(root) {
         </div>
     `;
     
+    // Toggle password visibility for Registration Password
+    const toggleRegPassword = document.getElementById("toggleRegPassword");
+    const regPassword = document.getElementById("regPassword");
+    
+    toggleRegPassword.addEventListener("click", function() {
+        const type = regPassword.getAttribute("type") === "password" ? "text" : "password";
+        regPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
+    
+    // Toggle password visibility for Confirm Password
+    const toggleRegConfirmPassword = document.getElementById("toggleRegConfirmPassword");
+    const regConfirmPassword = document.getElementById("regConfirmPassword");
+    
+    toggleRegConfirmPassword.addEventListener("click", function() {
+        const type = regConfirmPassword.getAttribute("type") === "password" ? "text" : "password";
+        regConfirmPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
+    
     const fNameInput = document.getElementById("regFName");
     const lNameInput = document.getElementById("regLName");
     const usernameInput = document.getElementById("regUsername");
-    const passwordInput = document.getElementById("regPassword");
     const confirmInput = document.getElementById("regConfirmPassword");
     const registerBtn = document.getElementById("registerBtn");
     
@@ -387,8 +450,8 @@ function renderRegisterScreen(root) {
         const fName = fNameInput.value.trim();
         const lName = lNameInput.value.trim();
         const username = usernameInput.value.trim();
-        const password = passwordInput.value;
-        const confirmPassword = confirmInput.value;
+        const password = regPassword.value;
+        const confirmPassword = regConfirmPassword.value;
         
         document.getElementById("registerError").innerHTML = "";
         document.getElementById("registerSuccess").innerHTML = "";
@@ -422,7 +485,7 @@ function renderRegisterScreen(root) {
         }
     }
     
-    const inputs = [fNameInput, lNameInput, usernameInput, passwordInput, confirmInput];
+    const inputs = [fNameInput, lNameInput, usernameInput, regPassword, regConfirmPassword];
     inputs.forEach(input => {
         input.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {

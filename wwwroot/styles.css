@@ -844,3 +844,7 @@ body {
     opacity: 1;
   }
 }
+
+input[type="password"]::-ms-reveal {
+    display: none;
+}
